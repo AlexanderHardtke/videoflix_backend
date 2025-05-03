@@ -1,0 +1,4 @@
+Registrierung mit Bestätigung und activeUser
+Logout Option mit Funktion nach 2 Stunden untätig automatisch Logout
+Passwort zurücksetzen auch nur über email
+
