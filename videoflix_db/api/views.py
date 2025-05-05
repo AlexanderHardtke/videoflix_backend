@@ -4,7 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from .serializers import RegistrationSerializer
+from .serializers import RegistrationSerializer, FileUploadSerializer
+from rest_framework.permissions import IsAdminUser
 from videoflix_db.models import UserProfil
 
 
@@ -63,3 +64,13 @@ class LoginView(ObtainAuthToken):
         else:
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data, status=status.HTTP_201_CREATED)
+    
+
+class FileUploadView(APIView):
+    permission_classes = [IsAdminUser]
+    def post (self, request, format=None):
+        serializer = FileUploadSerializer(data=request.date)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -12,11 +12,13 @@ class UserProfil(AbstractUser):
 class Video(models.Model):
     created_at = models.DateField(default=date.today)
     name = models.CharField(max_length=50, default='')
+    type = models.CharField(max_length=50, default='')
     image = models.FileField(max_length=99, blank=True, null=True, upload_to='images/')
-    file1080p = models.FileField(max_length=99, blank=True, upload_to='images/')
-    file720p = models.FileField(max_length=99, blank=True, upload_to='images/')
-    file360p = models.FileField(max_length=99, blank=True, upload_to='images/')
-    file120p = models.FileField(max_length=99, blank=True, upload_to='images/')
+    file1080p = models.FileField(max_length=99, blank=True, upload_to='movies/')
+    file720p = models.FileField(max_length=99, blank=True, upload_to='movies/')
+    file360p = models.FileField(max_length=99, blank=True, upload_to='movies/')
+    file120p = models.FileField(max_length=99, blank=True, upload_to='movies/')
+    uploaded_at = models.DateTimeField(auto_now_add=True, editable=False)
 
 
 class WatchedVideo(models.Model):
