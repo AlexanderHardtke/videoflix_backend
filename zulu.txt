@@ -2,3 +2,15 @@ Registrierung mit Bestätigung und activeUser
 Logout Option mit Funktion nach 2 Stunden untätig automatisch Logout
 Passwort zurücksetzen auch nur über email
 
+Du kannst beim Speichern einfach timedelta(seconds=3600) oder timedelta(hours=1, minutes=30) verwenden.
+
+Darstellung im Template (z. B. HH:MM:SS):
+
+python
+Kopieren
+Bearbeiten
+{% with total_seconds=video.duration.total_seconds %}
+    {{ total_seconds|floatformat:0|divisibleby:3600 }}:
+    {{ total_seconds|floatformat:0|divisibleby:60|modulo:60 }}:
+    {{ total_seconds|floatformat:0|modulo:60 }}
+{% endwith %}
