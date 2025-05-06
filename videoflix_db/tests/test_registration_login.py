@@ -18,38 +18,27 @@ class CreateUserTests(APITestCase):
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        partial_response = {
-            'username': 'exampleUsername',
-            'email': 'example@mail.de',
-        }
-        for key, value in partial_response.items():
-            self.assertEqual(response.data[key], value)
-
-        self.assertIsInstance(response.data['token'], str)
-        self.assertIsInstance(response.data['user_id'], int)
+        self.assertEqual(
+            response.data["registration"], "Confirm your email address")
 
     def test_duplicate_user(self):
         data = {
-            'username': 'exampleUsername',
             'email': 'example@mail.de',
             'password': 'examplePassword',
-            'repeated_password': 'examplePassword',
-            'type': 'customer'
+            'repeated_password': 'examplePassword'
         }
         response = self.client.post(self.url, data, format='json')
         response_duplicate = self.client.post(self.url, data, format='json')
-        self.assertWarnsMessage(response_duplicate.data,
-                                'A user with that username already exists.')
-        self.assertEqual(response_duplicate.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response_duplicate.status_code,
+                         status.HTTP_201_CREATED)
+        self.assertEqual(
+            response_duplicate.data["registration"], "Confirm your email address")
 
     def test_fail_create_user(self):
         data = {
-            'username': 'exampleUsername',
             'email': 'example@mail.de',
             'password': 'rightPassword',
-            'repeated_password': 'wrongPassword',
-            'type': 'customer'
+            'repeated_password': 'wrongPassword'
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -74,13 +63,20 @@ class UserLoginTests(APITestCase):
 
     def setUp(self):
         self.user = User.objects.create_user(
-            username='testuser', password='testpassword')
+            username='testuser',
+            password='testpassword',
+            is_active=True)
+        self.inactive_user = User.objects.create_user(
+            email='inactiveuser@mail.com',
+            password='testpassword',
+            is_active=False
+        )
         self.client = APIClient()
         self.url = reverse('login')
 
     def test_login_user(self):
         data = {
-            'username': 'testuser',
+            'email': 'testuser@mail.com',
             'password': 'testpassword'
         }
         response = self.client.post(self.url, data, format='json')
@@ -92,8 +88,20 @@ class UserLoginTests(APITestCase):
 
     def test_fail_login_user(self):
         data = {
-            'username': 'wrongUsername',
+            'email': 'wrong@mail.com',
             'password': 'wrongPassword'
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertWarnsMessage(
+            response.data, 'Incorrect username or password')
+
+    def test_fail_login_user_authorized(self):
+        data = {
+            'email': 'inactiveuser@mail.com',
+            'password': 'testpassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertWarnsMessage(
+            response.data, 'Confirm your email address')

@@ -14,3 +14,7 @@ Bearbeiten
     {{ total_seconds|floatformat:0|divisibleby:60|modulo:60 }}:
     {{ total_seconds|floatformat:0|modulo:60 }}
 {% endwith %}
+
+
+
+Wie schreibe ich einen Test mit Email-Registrierung?
