@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from django.contrib.auth.models import User
+from videoflix_db.models import AbstractUser
 
 
 class CreateUserTests(APITestCase):
@@ -62,11 +63,11 @@ class CreateUserTests(APITestCase):
 class UserLoginTests(APITestCase):
 
     def setUp(self):
-        self.user = User.objects.create_user(
+        self.user = AbstractUser.objects.create_user(
             username='testuser',
             password='testpassword',
             is_active=True)
-        self.inactive_user = User.objects.create_user(
+        self.inactive_user = AbstractUser.objects.create_user(
             email='inactiveuser@mail.com',
             password='testpassword',
             is_active=False
@@ -105,3 +106,5 @@ class UserLoginTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertWarnsMessage(
             response.data, 'Confirm your email address')
+        self.assertIn('registration', response.data)
+        self.assertEqual(response.data['registration'], 'Confirm your email address')

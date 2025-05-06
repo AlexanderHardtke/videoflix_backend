@@ -16,5 +16,13 @@ Bearbeiten
 {% endwith %}
 
 
+200 ok
+201 created
+202 accepted
 
-Wie schreibe ich einen Test mit Email-Registrierung?
+
+400 bad request rest
+401 unauthorized is klar ne
+403 forbidden wenn standard User videos einstellen will
+405 method not allowed is auch klar
+415 unsupported media type
