@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 
 
@@ -13,11 +12,9 @@ class CreateUserTests(APITestCase):
 
     def test_create_user(self):
         data = {
-            'username': 'exampleUsername',
             'email': 'example@mail.de',
             'password': 'examplePassword',
-            'repeated_password': 'examplePassword',
-            'type': 'customer'
+            'repeated_password': 'examplePassword'
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

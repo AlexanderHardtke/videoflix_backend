@@ -9,6 +9,6 @@ router.register(r'users', UserViewSet, basename='users')
 
 urlpatterns = [
     path("", include(router.urls)),
-    path('upload/', FileUploadView.as_view(), name='registration-detail'),
+    path('upload/', FileUploadView.as_view(), name='upload-detail'),
     path('registration/', RegistrationView.as_view(), name='registration-detail')
 ]
