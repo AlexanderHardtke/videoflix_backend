@@ -14,3 +14,17 @@ class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ['name', 'type', 'image', 'file1080p']
+
+
+class VideoSerializer():
+
+    class Meta:
+        model = Video
+        fields = '__all__'
+
+
+class WatchedVideoSerializer():
+
+    class Meta:
+        model = Video
+        fields = '__all__'
