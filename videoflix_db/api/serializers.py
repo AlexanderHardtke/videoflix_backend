@@ -8,9 +8,9 @@ class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfil
         fields = '__all__'
-
+        
 
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = '__all__'
+        fields = ['name', 'type', 'image', 'file1080p']

@@ -10,9 +10,15 @@ class UserProfil(AbstractUser):
     
 
 class Video(models.Model):
+    video_types = [
+        ('animals', 'Animals'),
+        ('nature', 'Nature'),
+        ('training', 'Training'),
+        ('movies', 'Movies')
+    ]
     created_at = models.DateField(default=date.today)
     name = models.CharField(max_length=50, default='')
-    type = models.CharField(max_length=50, default='')
+    type = models.CharField(max_length=50, choices=video_types, default='movies')
     image = models.FileField(max_length=99, blank=True, null=True, upload_to='images/')
     file1080p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file720p = models.FileField(max_length=99, blank=True, upload_to='movies/')
