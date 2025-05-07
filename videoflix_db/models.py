@@ -19,6 +19,7 @@ class Video(models.Model):
     file360p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file120p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     uploaded_at = models.DateTimeField(auto_now_add=True, editable=False)
+    uploaded_by = models.ForeignKey(UserProfil, on_delete=models.CASCADE, related_name='videos')
 
 
 class WatchedVideo(models.Model):
