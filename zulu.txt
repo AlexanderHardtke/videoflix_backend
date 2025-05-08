@@ -2,6 +2,9 @@ Registrierung mit Bestätigung und activeUser
 Logout Option mit Funktion nach 2 Stunden untätig automatisch Logout
 Passwort zurücksetzen auch nur über email
 
+captchas
+fail2ban
+
 Du kannst beim Speichern einfach timedelta(seconds=3600) oder timedelta(hours=1, minutes=30) verwenden.
 
 Darstellung im Template (z. B. HH:MM:SS):
@@ -26,3 +29,7 @@ Bearbeiten
 403 forbidden wenn standard User videos einstellen will
 405 method not allowed is auch klar
 415 unsupported media type
+
+make educational videos
+1 Test driven developement
+2 How to 
