@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1 <-- Bei manchen Systemen muss diese Zeile weg
 
-FROM python:3
+FROM python:3.13.3-bookworm
 
 
 

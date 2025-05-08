@@ -33,3 +33,7 @@ Bearbeiten
 make educational videos
 1 Test driven developement
 2 How to 
+
+
+
+docker compose up
