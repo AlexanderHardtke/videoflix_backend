@@ -1,4 +1,8 @@
 services:
   web:
-  build: .
-  container_name: 
+    build: .
+    container_name: videoflix_container
+    ports:
+      - 8000:8000
+    volumes:
+      - .src:/usr/src/app
