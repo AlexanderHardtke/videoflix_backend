@@ -35,5 +35,12 @@ make educational videos
 2 How to 
 
 
-
+docker compose up --build
 docker compose up
+
+docker exec videoflix_backend python manage.py makemigrations
+
+docker exec -ti postgres_db psql -U alucard -d dev_database
+/dt
+dev_database=# select * from core_actor
+
