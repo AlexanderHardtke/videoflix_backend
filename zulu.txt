@@ -2,6 +2,8 @@ Registrierung mit Bestätigung und activeUser
 Logout Option mit Funktion nach 2 Stunden untätig automatisch Logout
 Passwort zurücksetzen auch nur über email
 
+change maage.py runserver 0.0.0.0.:8000 to gunicorn
+
 captchas
 fail2ban
 
@@ -40,7 +42,9 @@ docker compose up
 
 docker exec videoflix_backend python manage.py makemigrations
 
-docker exec -ti postgres_db psql -U alucard -d dev_database
+um in die commando zeile des containers zu kommen
+docker exec -ti postgres_db psql -U alucard -d videoflix
 /dt
 dev_database=# select * from core_actor
 
+docker exec -ti videoflix python manage.py shell
