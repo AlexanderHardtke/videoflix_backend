@@ -1,8 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from django.contrib.auth.models import User
-from videoflix_db.models import AbstractUser
 
 
 class CreateUserTests(APITestCase):
@@ -18,23 +16,22 @@ class CreateUserTests(APITestCase):
             'repeated_password': 'examplePassword'
         }
         response = self.client.post(self.url, data, format='json')
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(
             response.data["registration"], "Confirm your email address")
 
-    # def test_duplicate_user(self):
-    #     data = {
-    #         'email': 'example@mail.de',
-    #         'password': 'examplePassword',
-    #         'repeated_password': 'examplePassword'
-    #     }
-    #     response = self.client.post(self.url, data, format='json')
-    #     response_duplicate = self.client.post(self.url, data, format='json')
-    #     self.assertEqual(response_duplicate.status_code,
-    #                      status.HTTP_201_CREATED)
-    #     self.assertEqual(
-    #         response_duplicate.data["registration"], "Confirm your email address")
+    def test_duplicate_user(self):
+        data = {
+            'email': 'example@mail.de',
+            'password': 'examplePassword',
+            'repeated_password': 'examplePassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        response_duplicate = self.client.post(self.url, data, format='json')
+        self.assertEqual(response_duplicate.status_code,
+                         status.HTTP_201_CREATED)
+        self.assertEqual(
+            response_duplicate.data["registration"], "Confirm your email address")
 
 #     def test_fail_create_user(self):
 #         data = {

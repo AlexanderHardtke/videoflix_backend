@@ -22,14 +22,8 @@ class RegistrationView(APIView):
 
         saved_user = serializer.save()
         token, created = Token.objects.get_or_create(user=saved_user)
-        data = {}
-        data = {
-            'token': token.key,
-            'email': saved_user.email,
-            'user_id': saved_user.pk,
-        }
-        return Response(data, status=status.HTTP_201_CREATED)
-    
+        return Response({"registration": "Confirm your email address"}, status=status.HTTP_201_CREATED)
+
 
 class LoginView(ObtainAuthToken):
 
@@ -82,11 +76,12 @@ class LoginView(ObtainAuthToken):
         else:
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         return Response(data, status=status.HTTP_201_CREATED)
-    
+
 
 class FileUploadView(APIView):
     permission_classes = [IsAdminUser]
-    def post (self, request, format=None):
+
+    def post(self, request, format=None):
         serializer = FileUploadSerializer(data=request.date)
         if serializer.is_valid():
             serializer.save()
