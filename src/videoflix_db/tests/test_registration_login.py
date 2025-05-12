@@ -2,6 +2,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from videoflix_db.models import UserProfil
+from .test_data import create_user, create_incative_user
 
 
 class CreateUserTests(APITestCase):
@@ -71,17 +72,8 @@ class CreateUserTests(APITestCase):
 class UserLoginTests(APITestCase):
 
     def setUp(self):
-        self.user = UserProfil.objects.create_user(
-            email='example@mail.de',
-            username='example@mail.de',
-            password='examplePassword',
-            email_confirmed=True)
-        self.inactive_user = UserProfil.objects.create_user(
-            email='inactiveuser@mail.de',
-            username='inactiveuser@mail.de',
-            password='examplePassword',
-            email_confirmed=False
-        )
+        self.user = create_user()
+        self.inactive_user = create_incative_user()
         self.client = APIClient()
         self.url = reverse('login-detail')
 
