@@ -33,29 +33,38 @@ class CreateUserTests(APITestCase):
         self.assertEqual(
             response_duplicate.data["registration"], "Confirm your email address")
 
-#     def test_fail_create_user(self):
-#         data = {
-#             'email': 'example@mail.de',
-#             'password': 'rightPassword',
-#             'repeated_password': 'wrongPassword'
-#         }
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    def test_fail_password_create_user(self):
+        data = {
+            'email': 'example@mail.de',
+            'password': 'rightPassword',
+            'repeated_password': 'wrongPassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-#     def test_invalid_method_create_user(self):
-#         response = self.client.get(self.url)
-#         self.assertEqual(
-#             response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
-#         )
-#         data = {'username': 'exampleUsername'}
-#         response = self.client.patch(self.url, data, format='json')
-#         self.assertEqual(
-#             response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
-#         )
-#         response = self.client.delete(self.url)
-#         self.assertEqual(
-#             response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
-#         )
+    def test_fail_email_create_user(self):
+        data = {
+            'email': 'noEmail',
+            'password': 'rightPassword',
+            'repeated_password': 'rightPassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invalid_method_create_user(self):
+        response = self.client.get(self.url)
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+        data = {'email': 'exampleUsername'}
+        response = self.client.patch(self.url, data, format='json')
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+        response = self.client.delete(self.url)
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
 
 # class UserLoginTests(APITestCase):
