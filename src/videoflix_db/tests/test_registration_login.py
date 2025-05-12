@@ -68,62 +68,57 @@ class CreateUserTests(APITestCase):
         )
 
 
-# class UserLoginTests(APITestCase):
+class UserLoginTests(APITestCase):
 
-#     def setUp(self):
-#         self.user = UserProfil.objects.create_user(
-#             email='example@mail.de',
-#             username='example@mail.de',
-#             password='examplePassword',
-#             email_confirmed=True)
-#         self.inactive_user = UserProfil.objects.create_user(
-#             email='inactiveuser@mail.com',
-#             username='inactiveuser@mail.com',
-#             password='testpassword',
-#             email_confirmed=False
-#         )
-#         self.client = APIClient()
-#         self.url = reverse('login-detail')
+    def setUp(self):
+        self.user = UserProfil.objects.create_user(
+            email='example@mail.de',
+            username='example@mail.de',
+            password='examplePassword',
+            email_confirmed=True)
+        self.inactive_user = UserProfil.objects.create_user(
+            email='inactiveuser@mail.de',
+            username='inactiveuser@mail.de',
+            password='examplePassword',
+            email_confirmed=False
+        )
+        self.client = APIClient()
+        self.url = reverse('login-detail')
 
-#     def test_login_user(self):
-#         data = {
-#             'username': 'example@mail.de',
-#             'password': 'examplePassword'
-#         }
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.data['username'], data['username'])
-#         self.assertIsInstance(response.data['token'], str)
-#         self.assertIsInstance(response.data['user_id'], int)
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_login_user(self):
+        data = {
+            'username': 'example@mail.de',
+            'password': 'examplePassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.data['username'], data['username'])
+        self.assertIsInstance(response.data['token'], str)
+        self.assertIsInstance(response.data['user_id'], int)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-#     def test_fail_email_login_user(self):
-#         data = {
-#             'email': 'wrong@mail.com',
-#             'password': 'examplePassword'
-#         }
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-#         self.assertWarnsMessage(
-#             response.data, 'Incorrect username or password')
+    def test_fail_email_login_user(self):
+        data = {
+            'email': 'wrong@mail.com',
+            'password': 'examplePassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Incorrect username or password')
         
-#     def test_fail_password_login_user(self):
-#         data = {
-#             'username': 'example@mail.de',
-#             'password': 'wrongPassword'
-#         }
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-#         self.assertWarnsMessage(
-#             response.data, 'Incorrect username or password')
+    def test_fail_password_login_user(self):
+        data = {
+            'username': 'example@mail.de',
+            'password': 'wrongPassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Incorrect username or password')
 
-#     def test_fail_login_user_authorized(self):
-#         data = {
-#             'email': 'inactiveuser@mail.com',
-#             'password': 'testpassword'
-#         }
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-#         self.assertWarnsMessage(
-#             response.data, 'Confirm your email address')
-#         self.assertIn('registration', response.data)
-#         self.assertEqual(response.data['registration'], 'Confirm your email address')
+    def test_fail_login_user_authorized(self):
+        data = {
+            'username': 'inactiveuser@mail.de',
+            'password': 'examplePassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.data['registration'], 'Confirm your email address')

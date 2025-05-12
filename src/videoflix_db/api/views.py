@@ -26,21 +26,26 @@ class RegistrationView(APIView):
 
 
 class LoginView(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        
+        if not serializer.is_valid():
+            return Response({'error': 'Incorrect username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        user = serializer.validated_data['user']
 
-        data = {}
-        if serializer.is_valid():
-            user = serializer.validated_data['username']
-            token, created = Token.objects.get_or_create(user=user)
-            data = {
-                'token': token.key,
-                'username': user.username,
-                'user_id': user.pk,
-            }
-        else:
-            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.email_confirmed:
+            return Response(
+                {'registration': 'Confirm your email address'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        token, created = Token.objects.get_or_create(user=user)
+        data = {
+            'token': token.key,
+            'username': user.username,
+            'user_id': user.pk,
+        }
         return Response(data, status=status.HTTP_201_CREATED)
 
 
@@ -56,26 +61,6 @@ class UserViewSet(viewsets.ViewSet):
         user = get_object_or_404(queryset, pk=pk)
         serializer = RegistrationSerializer(user)
         return Response(serializer.data)
-
-
-class LoginView(ObtainAuthToken):
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-
-        data = {}
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            data = {
-                'token': token.key,
-                'username': user.username,
-                'email': user.email,
-                'user_id': user.pk,
-            }
-        else:
-            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data, status=status.HTTP_201_CREATED)
 
 
 class FileUploadView(APIView):
