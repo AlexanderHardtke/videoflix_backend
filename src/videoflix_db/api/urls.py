@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import RegistrationView, UserViewSet, FileUploadView, LoginView
+from .views import RegistrationView, FileUploadView, LoginView, VideoView
 from rest_framework import routers
 
 router = routers.SimpleRouter()
-router.register(r'users', UserViewSet, basename='users')
+router.register(r'videos', VideoView, basename='videos')
 
 urlpatterns = [
     path("", include(router.urls)),

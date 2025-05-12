@@ -17,6 +17,6 @@ def create_incative_user():
         password='examplePassword', email_confirmed=False)
     
 def create_videos(user):
-    video = Video.objects.create(
+    Video.objects.create(
         name='testvideo', type='nature', image='',
         file1080p='', uploaded_by=user)

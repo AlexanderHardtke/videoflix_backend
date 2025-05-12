@@ -49,20 +49,6 @@ class LoginView(ObtainAuthToken):
         return Response(data, status=status.HTTP_201_CREATED)
 
 
-class UserViewSet(viewsets.ViewSet):
-
-    def list(self, request):
-        queryset = UserProfil.objects.all()
-        serializer = RegistrationSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None):
-        queryset = UserProfil.objects.all()
-        user = get_object_or_404(queryset, pk=pk)
-        serializer = RegistrationSerializer(user)
-        return Response(serializer.data)
-
-
 class FileUploadView(APIView):
     permission_classes = [IsAdminUser]
 
