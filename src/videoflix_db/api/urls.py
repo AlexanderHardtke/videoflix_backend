@@ -11,5 +11,5 @@ urlpatterns = [
     path("", include(router.urls)),
     path('upload/', FileUploadView.as_view(), name='upload-detail'),
     path('registration/', RegistrationView.as_view(), name='registration-detail'),
-    path('login/', LoginView.as_view(), name='login'),
+    path('login/', LoginView.as_view(), name='login-detail'),
 ]

@@ -1,10 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
 from datetime import date
 from django.contrib.auth.models import AbstractUser
 
 
 class UserProfil(AbstractUser):
+    email_confirmed = models.BooleanField(default=False)
     preferred_size = models.CharField(max_length=5, default='')
     sound_volume = models.CharField(max_length=3, default=50)
     
@@ -14,7 +14,7 @@ class Video(models.Model):
         ('animals', 'Animals'),
         ('nature', 'Nature'),
         ('training', 'Training'),
-        ('movies', 'Movies')
+        ('tutorials', 'Tutorials')
     ]
     created_at = models.DateField(default=date.today)
     name = models.CharField(max_length=50, default='')
