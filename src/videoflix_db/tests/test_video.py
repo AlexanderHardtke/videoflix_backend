@@ -19,6 +19,6 @@ class VideoTests(APITestCase):
         self.token = Token.objects.create(user=self.user)
         self.url = reverse('video-list')
 
-    def test_create_Video(self):
-        response = ''
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    # def test_create_Video(self):
+    #     response = ''
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)

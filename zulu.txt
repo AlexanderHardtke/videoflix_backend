@@ -47,4 +47,14 @@ docker exec -ti postgres_db psql -U alucard -d videoflix
 /dt
 dev_database=# select * from core_actor
 
-docker exec -ti videoflix python manage.py shell
+docker exec -ti videoflix_backend python manage.py shell
+
+
+
+
+
+"env/scripts/activate"
+
+docker exec -ti videoflix_backend python manage.py shell
+
+docker exec videoflix_backend python manage.py test
