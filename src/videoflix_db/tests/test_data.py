@@ -1,5 +1,6 @@
 from videoflix_db.models import Video, WatchedVideo, UserProfil
 
+invalid_video_pk = 254
 
 def create_admin():
     UserProfil.objects.create_superuser(
