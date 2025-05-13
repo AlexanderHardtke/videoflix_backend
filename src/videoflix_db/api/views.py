@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -27,8 +27,9 @@ class RegistrationView(APIView):
 
 class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data, context={'request': request})
-        
+        serializer = self.serializer_class(
+            data=request.data, context={'request': request})
+
         if not serializer.is_valid():
             return Response({'error': 'Incorrect username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -58,15 +59,16 @@ class FileUploadView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def patch(self, request, pk=None, format=None):
         file_instance = get_object_or_404(Video, pk=pk)
-        serializer = FileUploadSerializer(file_instance, data=request.data, partial=True)
+        serializer = FileUploadSerializer(
+            file_instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def delete(self, request, pk=None, format=None):
         file_instance = get_object_or_404(Video, pk=pk)
         file_instance.delete()
@@ -83,10 +85,34 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return VideoListSerializer
         return VideoSerializer
+    
+    def retrieve(self, request, *args, **kwargs):
+        video = self.get_object()
+        WatchedVideo.objects.get_or_create(user=request.user, video=video)
+
+        if not created:
+            print("keks")
+        # Optional: Hier könntest du z. B. einen Zeitstempel aktualisieren, aber das hängt vom Anwendungsfall ab
+            pass
+
+        serializer = self.get_serializer(video)
+        return Response(serializer.data)
 
 
-class WatchedVideoView(viewsets.ModelViewSet):
+class WatchedVideoView(viewsets.GenericViewSet,
+                       mixins.CreateModelMixin,
+                       mixins.UpdateModelMixin,
+                       mixins.ListModelMixin):
     # permission_classes = [IsAuthenticated]
 
-    queryset = WatchedVideo.objects.all()
     serializer_class = WatchedVideoSerializer
+
+    def get_queryset(self):
+        return WatchedVideo.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        # Nur watched_until darf aktualisiert werden
+        serializer.save()

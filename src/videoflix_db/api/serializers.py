@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from videoflix_db.models import UserProfil, Video
+from videoflix_db.models import UserProfil, Video, WatchedVideo
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -57,7 +57,8 @@ class VideoListSerializer(serializers.ModelSerializer):
 
 
 class WatchedVideoSerializer(serializers.ModelSerializer):
-
+    
     class Meta:
-        model = Video
-        fields = '__all__'
+        model = WatchedVideo
+        fields = ['id', 'video', 'watched_until']
+        read_only_fields = ['id', 'video', 'user']
