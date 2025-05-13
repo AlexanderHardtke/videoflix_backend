@@ -18,5 +18,5 @@ def create_incative_user():
     
 def create_videos(user):
     Video.objects.create(
-        name='testvideo', type='nature', image='',
-        file1080p='', uploaded_by=user)
+        name='exampleName', type='animals', image='src/media/images/Alex.PNG',
+        file1080p='src/media/movies/220kg_Deadlift.mp4', uploaded_by=user)

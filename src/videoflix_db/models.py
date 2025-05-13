@@ -16,7 +16,6 @@ class Video(models.Model):
         ('training', 'Training'),
         ('tutorials', 'Tutorials')
     ]
-    created_at = models.DateField(default=date.today)
     name = models.CharField(max_length=50, default='')
     type = models.CharField(max_length=50, choices=video_types, default='movies')
     image = models.FileField(max_length=99, blank=True, null=True, upload_to='images/')
