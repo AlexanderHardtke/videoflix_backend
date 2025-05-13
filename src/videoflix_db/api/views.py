@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer
-from rest_framework.permissions import IsAdminUser
+from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo
 
 
@@ -74,12 +74,19 @@ class FileUploadView(APIView):
 
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
+    # permission_classes = [IsAuthenticated]
 
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
 
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return VideoListSerializer
+        return VideoSerializer
+
 
 class WatchedVideoView(viewsets.ModelViewSet):
+    # permission_classes = [IsAuthenticated]
 
     queryset = WatchedVideo.objects.all()
     serializer_class = WatchedVideoSerializer

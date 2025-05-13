@@ -41,14 +41,22 @@ class FileUploadSerializer(serializers.ModelSerializer):
         fields = ['name', 'type', 'image', 'file1080p']
 
 
-class VideoSerializer():
+class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = '__all__'
+        exclude = ['uploaded_by']
 
 
-class WatchedVideoSerializer():
+class VideoListSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='video-detail')
+
+    class Meta:
+        model = Video
+        fields = ['name', 'url', 'type', 'image']
+
+
+class WatchedVideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
