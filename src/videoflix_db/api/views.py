@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.exceptions import UnsupportedMediaType
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo
@@ -54,13 +55,16 @@ class FileUploadView(APIView):
     permission_classes = [IsAdminUser]
 
     def post(self, request, format=None):
+        file = request.FILES.get('file1080p')
+        if file and not file.content_type.startswith('video/'):
+            raise UnsupportedMediaType(media_type=file.content_type)
         serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, pk=None, format=None):
+    def patch(self, request, pk, format=None):
         file_instance = get_object_or_404(Video, pk=pk)
         serializer = FileUploadSerializer(
             file_instance, data=request.data, partial=True)
