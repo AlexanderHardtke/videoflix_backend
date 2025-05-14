@@ -76,7 +76,7 @@ class FileUploadView(APIView):
 
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -88,7 +88,11 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         video = self.get_object()
-        WatchedVideo.objects.get_or_create(user=request.user, video=video, watched_until=0)
+        watched_video, created = WatchedVideo.objects.get_or_create(
+        user=request.user,
+        video=video,
+        defaults={"watched_until": 0}
+    )
 
         if not created:
             print("keks")
@@ -103,7 +107,7 @@ class WatchedVideoView(viewsets.GenericViewSet,
                        mixins.CreateModelMixin,
                        mixins.UpdateModelMixin,
                        mixins.ListModelMixin):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     serializer_class = WatchedVideoSerializer
 
