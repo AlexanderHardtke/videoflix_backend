@@ -85,26 +85,22 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
         if self.action == 'list':
             return VideoListSerializer
         return VideoSerializer
-    
+
     def retrieve(self, request, *args, **kwargs):
         video = self.get_object()
-        watched_video, created = WatchedVideo.objects.get_or_create(
-        user=request.user,
-        video=video,
-        defaults={"watched_until": 0}
-    )
-
-        if not created:
-            print("keks")
-        # Optional: Hier könntest du z. B. einen Zeitstempel aktualisieren, aber das hängt vom Anwendungsfall ab
-            pass
+        WatchedVideo.objects.get_or_create(
+            user=request.user,
+            video=video,
+            defaults={"watched_until": 0}
+        )
 
         serializer = self.get_serializer(video)
+        data = serializer.data
+        data['watched_until'] = watched_video.watched_until 
         return Response(serializer.data)
 
 
 class WatchedVideoView(viewsets.GenericViewSet,
-                       mixins.CreateModelMixin,
                        mixins.UpdateModelMixin,
                        mixins.ListModelMixin):
     permission_classes = [IsAuthenticated]
@@ -114,9 +110,5 @@ class WatchedVideoView(viewsets.GenericViewSet,
     def get_queryset(self):
         return WatchedVideo.objects.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
     def perform_update(self, serializer):
-        # Nur watched_until darf aktualisiert werden
         serializer.save()
