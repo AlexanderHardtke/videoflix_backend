@@ -13,6 +13,7 @@ class UserProfilAdmin(admin.ModelAdmin):
             'Individuelle Daten',
             {
                 'fields': (
+                    'email_confirmed',
                     'preferred_size',
                     'sound_volume'
                 )

@@ -88,7 +88,7 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
     
     def retrieve(self, request, *args, **kwargs):
         video = self.get_object()
-        WatchedVideo.objects.get_or_create(user=request.user, video=video)
+        WatchedVideo.objects.get_or_create(user=request.user, video=video, watched_until=0)
 
         if not created:
             print("keks")

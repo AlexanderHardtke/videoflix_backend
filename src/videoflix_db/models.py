@@ -30,4 +30,4 @@ class Video(models.Model):
 class WatchedVideo(models.Model):
     user = models.ForeignKey(UserProfil, on_delete=models.CASCADE)
     video = models.ForeignKey(Video, on_delete=models.CASCADE)
-    watched_until = models.DurationField()
+    watched_until = models.IntegerField(default=0)
