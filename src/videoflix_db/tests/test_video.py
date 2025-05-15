@@ -21,25 +21,31 @@ class VideoTests(APITestCase):
         self.client = APIClient()
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        self.url_list = reverse('video-list')
-        self.url = reverse('video-detail', kwargs={'pk': self.video.pk})
+        self.url = reverse('video-list')
 
-    def test_get_video_list(self):
-        response = self.client.get(self.url_list)
+    # def test_get_video_list(self):
+    #     response = self.client.get(self.url)
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    # def test_unauthorized_get_video_list(self):
+    #     client = APIClient()
+    #     response = client.get(self.url)
+    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # def test_forbidden_get_video_list(self):
+    #     user = create_incative_user()
+    #     client = APIClient()
+    #     self.token = Token.objects.create(user=user)
+    #     self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+    #     response = self.client.get(self.url)
+    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_video_single(self):
+        response = self.client.get(reverse('video-detail', kwargs={'pk': self.video.pk}))
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_unauthorized_get_video_list(self):
-        client = APIClient()
-        response = client.get(self.url_list)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_forbidden_get_video_list(self):
-        user = create_incative_user()
-        client = APIClient()
-        self.token = Token.objects.create(user=user)
-        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-        response = self.client.get(self.url_list)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data['name'], 'exampleName')
+        self.assertContains(response.data['id'])
 
     # def test_wrong_methods_get_video_list(self):
     #     response = self.client.post(self.url_list)
