@@ -5,7 +5,7 @@ from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from .test_data import create_video, create_user, create_admin, create_incative_user, create_other_user, invalid_video_pk
-from videoflix_db.models import Video
+from videoflix_db.models import Video, WatchedVideo
 import tempfile
 import shutil
 
@@ -79,13 +79,11 @@ class WatchedVideoTests(APITestCase):
     #     self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_patch_watched_video_detail(self):
-        data = {
-            'watched_until': 10
-        }
-        response = self.client.patch(
-            reverse('watched-detail', kwargs={'pk': 0}), data)
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        watched_video = WatchedVideo.objects.create(user=self.user, video=self.video, watched_until=0)
+        url = reverse('watched-detail', kwargs={'pk': watched_video.pk})
+        response = self.client.patch(url, {"watched_until": 42}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['watched_until'], 42)
 
     def tearDown(self):
         shutil.rmtree(self._temp_media)
