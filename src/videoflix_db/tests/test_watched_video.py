@@ -26,57 +26,41 @@ class WatchedVideoTests(APITestCase):
         self.video_instance = create_video(self.admin)
         self.client.get(reverse('video-detail', kwargs={'pk': self.video.pk}))
 
-    # def test_get_watched_video_list(self):
-    #     response = self.client.get(self.url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(response.data[0]['watched_until'], 0)
+    def test_get_watched_video_list(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['watched_until'], 0)
 
-    # def test_other_user_get_watched_video_list(self):
-    #     response = self.client.get(self.url)
-    #     self.assertEqual(response.data[0]['watched_until'], 0)
+    def test_other_user_get_watched_video_list(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.data[0]['watched_until'], 0)
 
-    #     self.token = Token.objects.create(user=self.other_user)
-    #     self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-    #     response = self.client.get(self.url)
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     self.assertEqual(len(response.data), 0)
+        self.token = Token.objects.create(user=self.other_user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
 
-    # def test_unauthorized_get_watched_video_list(self):
-    #     client = APIClient()
-    #     response = client.get(self.url)
-    #     self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    def test_unauthorized_get_watched_video_list(self):
+        client = APIClient()
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    # def test_forbidden_get_watched_video_list(self):
-    #     user = create_incative_user()
-    #     self.token = Token.objects.create(user=user)
-    #     self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-    #     response = self.client.get(self.url)
-    #     self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_forbidden_get_watched_video_list(self):
+        user = create_incative_user()
+        self.token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    # def test_wrong_method_post_watched_video_list(self):
-    #     data = {
-    #         'user': 1,
-    #         'video': 1,
-    #         'watched_until': 0
-    #     }
-    #     response = self.client.post(self.url, data)
-    #     self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    # def test_wrong_method_get_watched_video_detail(self):
-    #     response = self.client.get(
-    #         reverse('watched-detail', kwargs={'pk': self.video.pk}))
-    #     self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-    #     data = {
-    #         'user': 1,
-    #         'video': 1,
-    #         'watched_until': 0
-    #     }
-    #     response = self.client.post(
-    #         reverse('watched-detail', kwargs={'pk': self.video.pk}), data)
-    #     self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
-    #     response = self.client.delete(
-    #         reverse('watched-detail', kwargs={'pk': self.video.pk}))
-    #     self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+    def test_wrong_method_post_watched_video_list(self):
+        data = {
+            'user': 1,
+            'video': 1,
+            'watched_until': 0
+        }
+        response = self.client.post(self.url, data)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_patch_watched_video_detail(self):
         watched_video = WatchedVideo.objects.create(user=self.user, video=self.video, watched_until=0)
@@ -84,6 +68,49 @@ class WatchedVideoTests(APITestCase):
         response = self.client.patch(url, {"watched_until": 42}, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['watched_until'], 42)
+
+    def test_wrong_patch_watched_video_detail(self):
+        watched_video = WatchedVideo.objects.create(user=self.user, video=self.video, watched_until=0)
+        url = reverse('watched-detail', kwargs={'pk': watched_video.pk})
+        response = self.client.patch(url, {"watched_until": "Not a Number"}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_unauthorized_patch_watched_video_detail(self):
+        client = APIClient()
+        watched_video = WatchedVideo.objects.create(user=self.user, video=self.video, watched_until=0)
+        url = reverse('watched-detail', kwargs={'pk': watched_video.pk})
+        response = client.patch(url, {"watched_until": 42}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_hide_forbidden_patch_watched_video_detail(self):
+        watched_video = WatchedVideo.objects.create(user=self.user, video=self.video, watched_until=0)
+        self.token = Token.objects.create(user=self.other_user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        url = reverse('watched-detail', kwargs={'pk': watched_video.pk})
+        response = self.client.patch(url, {"watched_until": 42}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_not_found_patch_watched_video_detail(self):
+        WatchedVideo.objects.create(user=self.user, video=self.video, watched_until=0)
+        url = reverse('watched-detail', kwargs={'pk': invalid_video_pk})
+        response = self.client.patch(url, {"watched_until": 42}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_wrong_method_get_watched_video_detail(self):
+        response = self.client.get(
+            reverse('watched-detail', kwargs={'pk': self.video.pk}))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        data = {
+            'user': 1,
+            'video': 1,
+            'watched_until': 0
+        }
+        response = self.client.post(
+            reverse('watched-detail', kwargs={'pk': self.video.pk}), data)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        response = self.client.delete(
+            reverse('watched-detail', kwargs={'pk': self.video.pk}))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def tearDown(self):
         shutil.rmtree(self._temp_media)
