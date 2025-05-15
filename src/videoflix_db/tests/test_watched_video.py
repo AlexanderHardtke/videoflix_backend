@@ -29,6 +29,7 @@ class WatchedVideoTests(APITestCase):
         response = self.client.get(
             reverse('video-detail', kwargs={'pk': self.video.pk}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['watched_until'], 0)
@@ -38,11 +39,32 @@ class WatchedVideoTests(APITestCase):
             reverse('video-detail', kwargs={'pk': self.video.pk}))
         response = self.client.get(self.url)
         self.assertEqual(response.data[0]['watched_until'], 0)
+
         self.token = Token.objects.create(user=self.other_user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
+
+    def test_unauthorized_get_watched_video_list(self):
+        response = self.client.get(
+            reverse('video-detail', kwargs={'pk': self.video.pk}))
+        
+        client = APIClient()
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_forbidden_get_watched_video_list(self):
+        response = self.client.get(
+            reverse('video-detail', kwargs={'pk': self.video.pk}))
+        
+        user = create_incative_user()
+        self.token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    
 
     def tearDown(self):
         shutil.rmtree(self._temp_media)
