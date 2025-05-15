@@ -10,18 +10,20 @@ def create_admin():
         email='staff@mail.de', username='staff@mail.de',
         password='staffpw', is_staff=True, email_confirmed=True)
 
-
 def create_user():
     return UserProfil.objects.create_user(
         email='example@mail.de', username='example@mail.de',
         password='examplePassword', email_confirmed=True)
 
+def create_other_user():
+    return UserProfil.objects.create_user(
+        email='other@mail.de', username='other@mail.de',
+        password='otherPassword', email_confirmed=True)
 
 def create_incative_user():
     return UserProfil.objects.create_user(
         email='inactiveuser@mail.de', username='inactiveuser@mail.de',
         password='examplePassword', email_confirmed=False)
-
 
 def create_video(user):
     return Video.objects.create(
