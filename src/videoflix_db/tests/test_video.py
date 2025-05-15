@@ -17,7 +17,6 @@ class VideoUploadTests(APITestCase):
         settings.MEDIA_ROOT = self._temp_media
         self.admin = create_admin()
         self.user = create_user()
-        self.video = create_video(self.admin)
         self.client = APIClient()
         self.token = Token.objects.create(user=self.admin)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
@@ -88,6 +87,7 @@ class VideoUploadTests(APITestCase):
                          status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
     def test_update_upload_Video(self):
+        video_instance = create_video(self.admin)
         image = SimpleUploadedFile("changed.jpg", b"fake image content", content_type="image/jpeg")
         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
         data = {
@@ -96,10 +96,13 @@ class VideoUploadTests(APITestCase):
             'image': image,
             'file1080p': video
         }
-        url = reverse('upload-detail', kwargs={'pk': self.video.pk})
+        url = reverse('upload-detail', kwargs={'pk': video_instance.pk})
         response = self.client.patch(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['name'], 'changed')
+        self.assertEqual(response.data['type'], 'animals')
+        self.assertTrue(response.data['image'].endswith('changed.jpg'))
+        self.assertTrue(response.data['file1080p'].endswith('changed.mp4'))
 
 #     def test_patch_offer(self):
 #         url = reverse('upload-detail', kwargs={'pk': self.user_video[0].pk})

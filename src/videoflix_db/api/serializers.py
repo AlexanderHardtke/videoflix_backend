@@ -38,7 +38,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ['name', 'type', 'image', 'file1080p']
+        fields = ['id', 'name', 'type', 'image', 'file1080p']
 
 
 class VideoSerializer(serializers.ModelSerializer):
