@@ -5,9 +5,10 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
-from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo
+from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
+from .permissions import IsEmailConfirmed
 
 
 class RegistrationView(APIView):
@@ -80,7 +81,7 @@ class FileUploadView(APIView):
 
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsEmailConfirmed]
 
     queryset = Video.objects.all()
     serializer_class = VideoSerializer
@@ -107,7 +108,7 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
 class WatchedVideoView(viewsets.GenericViewSet,
                        mixins.UpdateModelMixin,
                        mixins.ListModelMixin):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsEmailConfirmed]
 
     serializer_class = WatchedVideoSerializer
 
