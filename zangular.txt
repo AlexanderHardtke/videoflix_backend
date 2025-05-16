@@ -1,0 +1,85 @@
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { fromEvent, interval, merge, Subscription } from 'rxjs';
+import { throttle } from 'rxjs/operators';
+import { WatchedVideoService } from '../services/watched-video.service';
+
+@Component({
+  selector: 'app-video-player',
+  template: `
+    <video #videoPlayer
+           [src]="videoUrl"
+           controls
+           (pause)="saveProgress()"
+           (ended)="saveProgress()">
+    </video>
+  `
+})
+export class VideoPlayerComponent implements OnInit, OnDestroy {
+  @ViewChild('videoPlayer', { static: true }) videoRef!: ElementRef<HTMLVideoElement>;
+  private subs = new Subscription();
+  private watchedVideoId!: number; // aus Route oder API
+  readonly SAVE_INTERVAL = 10_000; // ms
+
+  constructor(private watchedSvc: WatchedVideoService) {}
+
+  ngOnInit() {
+    const videoEl = this.videoRef.nativeElement;
+
+    // 1) timeupdate-Events throtteln
+    const timeUpdates$ = fromEvent(videoEl, 'timeupdate')
+      .pipe(throttle(() => interval(this.SAVE_INTERVAL)));
+
+    // 2) Merge mit beforeunload, für Fallback
+    const beforeUnload$ = fromEvent(window, 'beforeunload');
+
+    this.subs.add(
+      merge(timeUpdates$, beforeUnload$).subscribe(() => this.saveProgress())
+    );
+  }
+
+  saveProgress() {
+    const current = Math.floor(this.videoRef.nativeElement.currentTime);
+    this.watchedSvc.update(this.watchedVideoId, { watched_until: current })
+      .subscribe({
+        error: err => console.error('Save progress failed', err)
+      });
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+    this.saveProgress(); // letzte Chance
+  }
+}
+
+2.2 Watched-Video Service (watched-video.service.ts)
+ts
+Kopieren
+Bearbeiten
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+export interface WatchedVideoPatch {
+  watched_until: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class WatchedVideoService {
+  private base = '/api/watched-videos/';
+
+  constructor(private http: HttpClient) {}
+
+  update(id: number, data: WatchedVideoPatch) {
+    return this.http.patch<void>(`${this.base}${id}/`, data);
+  }
+}
+
+4. Industriestandard
+Throttling: Zeitupdates alle 5–30 Sekunden (je nach Use-Case).
+
+Ereignis-basiert: Zusätzliche Saves bei Pause, Wechsel Tab/Window, Video-Ende.
+
+Persistenz-Fallback: Bei schlechten Netzbedingungen auf Client zwischen­puffern und später nachreichen.
+
+Analytics: Separate Pipelines (z. B. Kafka, Celery) für detaillierte Telemetrie – aber nicht im synchronen API-Pfad.
+
+Damit bleibt Deine API einfach, performant und Dein Frontend responsiv.
