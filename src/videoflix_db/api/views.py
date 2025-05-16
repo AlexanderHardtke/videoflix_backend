@@ -1,4 +1,7 @@
 from django.shortcuts import get_object_or_404
+from django.core.cache import cache
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.conf import settings
 from rest_framework import status, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,6 +12,9 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
 from .permissions import IsEmailConfirmed
+
+
+CACHETTL = getattr(settings, 'CACHETTL', DEFAULT_TIMEOUT)
 
 
 class RegistrationView(APIView):
@@ -92,17 +98,24 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
         return VideoSerializer
 
     def retrieve(self, request, *args, **kwargs):
-        video = self.get_object()
+        video_id = kwargs['pk']
+        cache_key = f"video_meta:{video_id}"
+
+        meta = cache.get(cache_key)
+        if meta is None:
+            video = self.get_object()
+            meta = self.get_serializer(video).data
+            cache.set(cache_key, meta, timeout=CACHETTL)
+        
         watched_video, _ = WatchedVideo.objects.get_or_create(
             user=request.user,
-            video=video,
+            video_id=video_id,
             defaults={"watched_until": 0}
         )
 
-        serializer = self.get_serializer(video)
-        data = serializer.data
-        data['watched_until'] = watched_video.watched_until 
-        return Response(serializer.data)
+        meta_with_progress = meta.copy()
+        meta_with_progress['watched_until'] = watched_video.watched_until
+        return Response(meta_with_progress)
 
 
 class WatchedVideoView(viewsets.GenericViewSet,
