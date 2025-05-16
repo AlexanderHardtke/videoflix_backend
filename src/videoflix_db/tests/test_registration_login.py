@@ -1,7 +1,6 @@
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from videoflix_db.models import UserProfil
 from .test_data import create_user, create_incative_user
 
 

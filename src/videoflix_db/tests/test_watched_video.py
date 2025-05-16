@@ -1,6 +1,5 @@
 from django.urls import reverse
 from django.conf import settings
-from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
 from rest_framework.authtoken.models import Token
