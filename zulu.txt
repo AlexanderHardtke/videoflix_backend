@@ -59,3 +59,4 @@ docker exec -ti videoflix_backend python manage.py shell
 
 docker exec videoflix_backend python manage.py test
 
+videos created
