@@ -3,8 +3,14 @@ from .models import UserProfil, Video, WatchedVideo
 from .forms import ProfilUserCreationForm
 from django.contrib.auth.admin import UserAdmin
 
+
 admin.site.register(Video)
+class VideoAdmin(admin.ModelAdmin):
+    readonly_fields = ['file720p', 'file360p', 'file240p']
+
+
 admin.site.register(WatchedVideo)
+
 
 @admin.register(UserProfil)
 class UserProfilAdmin(admin.ModelAdmin):
