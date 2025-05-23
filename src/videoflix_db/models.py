@@ -2,12 +2,18 @@ from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import uuid
+import secrets
 
 
 class UserProfil(AbstractUser):
     email_confirmed = models.BooleanField(default=False)
     preferred_size = models.CharField(max_length=5, default='')
     sound_volume = models.CharField(max_length=3, default=50)
+
+    def generate_confirmation_token(self):
+        self.confirmation_token = secrets.token_hex(32)
+        self.token_created_at = timezone.now()
+        self.save()
 
 
 class EmailConfirmationToken(models.Model):

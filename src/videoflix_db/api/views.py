@@ -12,6 +12,9 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
 from .permissions import IsEmailConfirmed
+from videoflix_db.models import EmailConfirmationToken
+import secrets
+import requests
 
 
 CACHETTL = getattr(settings, 'CACHETTL', DEFAULT_TIMEOUT)
@@ -29,11 +32,29 @@ class RegistrationView(APIView):
             )
 
         saved_user = serializer.save()
-        token, created = Token.objects.get_or_create(user=saved_user)
+        token = secrets.token_hex(32)
+        EmailConfirmationToken.objects.create(user=saved_user, token=token)
+        lang = request.data.get("lang", "de")
+        url = "https://videoflix.alexander-hardtke.com/confirm-email-link-de.php" if lang == "de" else \
+              "https://videoflix.alexander-hardtke.com/confirm-email-link-en.php"
+
+        try:
+            requests.post(
+                url,
+                json={
+                    "email": saved_user.email,
+                    "token": token,
+                },
+                headers={"Content-Type": "application/json"},
+                timeout=5
+            )
+        except requests.RequestException as error:
+            return Response({"registration": error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"registration": "Confirm your email address"}, status=status.HTTP_201_CREATED)
 
 
 class LoginView(ObtainAuthToken):
+
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
             data=request.data, context={'request': request})
@@ -106,7 +127,7 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
             video = self.get_object()
             meta = self.get_serializer(video).data
             cache.set(cache_key, meta, timeout=CACHETTL)
-        
+
         watched_video, _ = WatchedVideo.objects.get_or_create(
             user=request.user,
             video_id=video_id,
