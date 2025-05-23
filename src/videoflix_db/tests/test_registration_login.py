@@ -113,3 +113,7 @@ class UserLoginTests(APITestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['registration'], 'Confirm your email address')
+
+
+
+# Registration Token and Password reset

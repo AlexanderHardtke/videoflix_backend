@@ -51,6 +51,52 @@ class RegistrationView(APIView):
         except requests.RequestException as error:
             return Response({"registration": error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"registration": "Confirm your email address"}, status=status.HTTP_201_CREATED)
+    
+
+class ConfirmEmailView(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({"error": "Token is not valid or expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            confirmation_token = EmailConfirmationToken.objects.get(token=token)
+        except EmailConfirmationToken.DoesNotExist:
+            return Response({"error": "Token is not valid or expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if confirmation_token.is_expired():
+            confirmation_token.delete()
+            return Response({"error": "Token is not valid or expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = confirmation_token.user
+        user.email_confirmed = True
+        user.save()
+        confirmation_token.delete()
+
+        return Response({"success": "email address confirmed"}, status=status.HTTP_200_OK)
+    
+
+class ResetPasswordView(APIView):
+    def post(self, request):
+        token = request.data.get('token')
+        if not token:
+            return Response({"error": "Token fehlt"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            confirmation_token = EmailConfirmationToken.objects.get(token=token)
+        except EmailConfirmationToken.DoesNotExist:
+            return Response({"error": "Ungültiger Token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if confirmation_token.is_expired():
+            confirmation_token.delete()
+            return Response({"error": "Token abgelaufen"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = confirmation_token.user
+        user.email_confirmed = True
+        user.save()
+        confirmation_token.delete()
+
+        return Response({"success": "E-Mail bestätigt"}, status=status.HTTP_200_OK)
 
 
 class LoginView(ObtainAuthToken):
