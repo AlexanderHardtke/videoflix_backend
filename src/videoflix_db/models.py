@@ -32,15 +32,6 @@ class PasswordForgetToken(models.Model):
 
     def is_expired(self):
         return (timezone.now() - self.created_at).days >= 1
-    
-
-class ForgotPasswordToken(models.Model):
-    user = models.ForeignKey(UserProfil, on_delete=models.CASCADE)
-    token = models.CharField(max_length=64, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def is_expired(self):
-        return (timezone.now() - self.created_at).days >= 1
 
 
 class Video(models.Model):
