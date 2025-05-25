@@ -108,6 +108,34 @@ class ResetPasswordView(APIView):
         return Response({'reset': 'Check your email to reset password'}, status=status.HTTP_201_CREATED)
 
 
+class ChangePasswordView(APIView):
+    def post(self, request):
+        password = request.data.get('password')
+        token = request.data.get('token')
+        if not token:
+            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not password:
+            return Response({'error': 'Password is missing'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            confirmation_token = PasswordForgetToken.objects.get(
+                token=token)
+        except PasswordForgetToken.DoesNotExist:
+            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if confirmation_token.is_expired():
+            confirmation_token.delete()
+            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = confirmation_token.user
+        user.set_password(password)
+        user.save()
+        confirmation_token.delete()
+
+        return Response({'success': 'Password changed successfully'}, status=status.HTTP_200_OK)
+
+
 class LoginView(ObtainAuthToken):
 
     def post(self, request, *args, **kwargs):
