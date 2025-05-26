@@ -119,19 +119,19 @@ class ChangePasswordView(APIView):
             return Response({'error': 'Password is missing'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            confirmation_token = PasswordForgetToken.objects.get(
+            forget_token = PasswordForgetToken.objects.get(
                 token=token)
         except PasswordForgetToken.DoesNotExist:
             return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if confirmation_token.is_expired():
-            confirmation_token.delete()
+        if forget_token.is_expired():
+            forget_token.delete()
             return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = confirmation_token.user
+        user = forget_token.user
         user.set_password(password)
         user.save()
-        confirmation_token.delete()
+        forget_token.delete()
 
         return Response({'success': 'Password changed successfully'}, status=status.HTTP_200_OK)
 

@@ -1,7 +1,9 @@
 from django.conf import settings
+from django.utils import timezone
+from django_rq import job
+from videoflix_db.models import PasswordForgetToken, EmailConfirmationToken
 from .models import Video
 import subprocess
-from django_rq import job
 
 
 def convert_and_save(video_id, source, resolution, dimensions):
@@ -34,3 +36,11 @@ def convert_360p(video_id, source):
 @job('queue_240p')
 def convert_240p(video_id, source):
     convert_and_save(video_id, source, '240p', '426x240')
+
+@job('queue_token')
+def clear_token():
+    now = timezone.now()
+    expired_pw_tokens = PasswordForgetToken.objects.filter(created_at__lt=now - timezone.timedelta(days=1))
+    expired_pw_tokens.delete()
+    expired_email_tokens = EmailConfirmationToken.objects.filter(created_at__lt=now - timezone.timedelta(days=1))
+    expired_email_tokens.delete()
