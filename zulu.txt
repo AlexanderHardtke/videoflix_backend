@@ -58,3 +58,5 @@ docker exec -ti videoflix_backend python manage.py shell
 docker exec -ti videoflix_backend python manage.py shell
 
 docker exec videoflix_backend python manage.py test
+
+docker-compose down -v && docker-compose build --no-cache && docker-compose up
