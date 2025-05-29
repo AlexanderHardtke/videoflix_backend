@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 from django_rq import get_scheduler
 from django.utils import timezone
-from tasks import clear_token
 
 
 class VideoflixDbConfig(AppConfig):
@@ -9,6 +8,7 @@ class VideoflixDbConfig(AppConfig):
     name = 'videoflix_db'
 
     def ready(self):
+        from .tasks import clear_token
         from . import signals
         scheduler = get_scheduler('queue_token')
 
