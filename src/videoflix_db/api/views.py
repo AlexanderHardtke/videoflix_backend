@@ -73,7 +73,7 @@ class ConfirmEmailView(APIView):
         user.save()
         confirmation_token.delete()
 
-        return Response({'success': 'email address confirmed'}, status=status.HTTP_200_OK)
+        return Response({'success': 'Email confirmed'}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(APIView):
