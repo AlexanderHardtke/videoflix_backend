@@ -4,22 +4,22 @@ from rest_framework import status
 from .test_data import create_user, create_incative_user
 
 
-# class CreateUserTests(APITestCase):
+class CreateUserTests(APITestCase):
 
-#     def setUp(self):
-#         self.client = APIClient()
-#         self.url = reverse('registration-detail')
+    def setUp(self):
+        self.client = APIClient()
+        self.url = reverse('registration-detail')
 
-#     def test_create_user(self):
-#         data = {
-#             'email': 'example@mail.de',
-#             'password': 'examplePassword',
-#             'repeated_password': 'examplePassword'
-#         }
-#         response = self.client.post(self.url, data, format='json')
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         self.assertEqual(
-#             response.data["registration"], "Confirm your email address")
+    def test_create_user(self):
+        data = {
+            'email': 'example@mail.de',
+            'password': 'examplePassword',
+            'repeated_password': 'examplePassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            response.data["registration"], "Confirm your email address")
 
 #     def test_duplicate_user(self):
 #         data = {
@@ -118,39 +118,39 @@ from .test_data import create_user, create_incative_user
 #             response.data['registration'], 'Confirm your email address')
 
 
-class ActivateAccountTests(APITestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.url = reverse('registration-detail')
-        data = {
-            'email': 'example@mail.de',
-            'password': 'examplePassword',
-            'repeated_password': 'examplePassword'
-        }
-        response = self.client.post(self.url, data, format='json')
-        print(response)
+# class ActivateAccountTests(APITestCase):
+#     def setUp(self):
+#         self.client = APIClient()
+#         self.url = reverse('registration-detail')
+#         data = {
+#             'email': 'example@mail.de',
+#             'password': 'examplePassword',
+#             'repeated_password': 'examplePassword'
+#         }
+#         response = self.client.post(self.url, data, format='json')
+#         print(response)
 
-    def test_create_active_account(self):
-        print(self)
-
-
-class PasswordResetTests(APITestCase):
-    def setUp(self):
-        self.user = create_user()
-        self.inactive_user = create_incative_user()
-        self.client = APIClient()
-        self.url = reverse('reset-detail')
-
-    def test_create_reset_password(self):
-        data = {'email': 'example@mail.de'}
-        response = self.client.post(self.url, data, format='json')
-        print(response)
+#     def test_create_active_account(self):
+#         print(self)
 
 
+# class PasswordResetTests(APITestCase):
+#     def setUp(self):
+#         self.user = create_user()
+#         self.inactive_user = create_incative_user()
+#         self.client = APIClient()
+#         self.url = reverse('reset-detail')
 
-        self.assertEqual(response.data['username'], data['username'])
-        self.assertIsInstance(response.data['token'], str)
-        self.assertIsInstance(response.data['user_id'], int)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+#     def test_create_reset_password(self):
+#         data = {'email': 'example@mail.de'}
+#         response = self.client.post(self.url, data, format='json')
+#         print(response)
+
+
+
+#         self.assertEqual(response.data['username'], data['username'])
+#         self.assertIsInstance(response.data['token'], str)
+#         self.assertIsInstance(response.data['user_id'], int)
+#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 # Registration Token and Password reset
