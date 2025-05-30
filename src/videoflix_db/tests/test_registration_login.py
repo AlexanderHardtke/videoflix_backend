@@ -122,6 +122,16 @@ class ActivateAccountTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.url = reverse('registration-detail')
+        data = {
+            'email': 'example@mail.de',
+            'password': 'examplePassword',
+            'repeated_password': 'examplePassword'
+        }
+        response = self.client.post(self.url, data, format='json')
+        print(response)
+
+    def test_create_active_account(self):
+        print(self)
 
 
 class PasswordResetTests(APITestCase):

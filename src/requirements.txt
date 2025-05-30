@@ -10,7 +10,7 @@ Django==5.2
 django-cors-headers==4.7.0
 django-filter==25.1
 django-redis==5.4.0
-django-rq==2.7.0
+django-rq==2.10.2
 django-rq-scheduler==2023.9.0
 freezegun==1.5.2
 rq-scheduler==0.13.1
@@ -25,7 +25,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 redis==6.2.0
 requests==2.32.3
-rq==1.15.1
+rq==1.16.1
 sqlparse==0.5.3
 typing_extensions==4.13.2
 tzdata==2025.2
