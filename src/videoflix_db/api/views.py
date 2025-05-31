@@ -34,8 +34,8 @@ class RegistrationView(APIView):
         token = secrets.token_hex(32)
         EmailConfirmationToken.objects.create(user=saved_user, token=token)
         lang = request.data.get('lang', 'de')
-        url = settings.EMAIL_CONFIRM_URL + '/confirm-email-link-de.php' if lang == 'de' else \
-            settings.EMAIL_CONFIRM_URL + '/confirm-email-link-en.php'
+        url = settings.EMAIL_CONFIRM_URL + 'confirm-email-link-de.php' if lang == 'de' else \
+            settings.EMAIL_CONFIRM_URL + 'confirm-email-link-en.php'
 
         try:
             requests.post(
@@ -90,8 +90,8 @@ class ResetPasswordView(APIView):
 
         token = secrets.token_hex(32)
         PasswordForgetToken.objects.create(user=saved_user, token=token)
-        url = settings.EMAIL_CONFIRM_URL + '/send-reset-link-de.php' if lang == 'de' else \
-            settings.EMAIL_CONFIRM_URL + '/send-reset-link-en.php'
+        url = settings.EMAIL_CONFIRM_URL + 'send-reset-link-de.php' if lang == 'de' else \
+            settings.EMAIL_CONFIRM_URL + 'send-reset-link-en.php'
 
         try:
             requests.post(
