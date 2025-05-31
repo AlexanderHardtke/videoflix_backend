@@ -48,7 +48,7 @@ class RegistrationView(APIView):
                 timeout=5
             )
         except requests.RequestException as error:
-            return Response({'registration': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'registration': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'registration': 'Confirm your email address'}, status=status.HTTP_201_CREATED)
 
 

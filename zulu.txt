@@ -70,3 +70,6 @@ docker exec videoflix_backend coverage report
 docker exec videoflix_backend coverage html
 
 docker cp videoflix_backend:/app/htmlcov ./htmlcov
+
+from django.core.management.utils import get_random_secret_key
+print(get_random_secret_key())
