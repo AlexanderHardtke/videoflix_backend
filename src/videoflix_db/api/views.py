@@ -36,7 +36,6 @@ class RegistrationView(APIView):
         lang = request.data.get('lang', 'de')
         url = settings.EMAIL_CONFIRM_URL + 'confirm-email-link-de.php' if lang == 'de' else \
             settings.EMAIL_CONFIRM_URL + 'confirm-email-link-en.php'
-
         try:
             requests.post(
                 url,
