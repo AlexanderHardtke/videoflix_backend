@@ -34,8 +34,9 @@ class RegistrationView(APIView):
         token = secrets.token_hex(32)
         EmailConfirmationToken.objects.create(user=saved_user, token=token)
         lang = request.data.get('lang', 'de')
-        url = settings.EMAIL_CONFIRM_URL + 'confirm-email-link-de.php' if lang == 'de' else \
-            settings.EMAIL_CONFIRM_URL + 'confirm-email-link-en.php'
+        url = settings.FRONTEND_URL + 'confirm-email-link-de.php' if lang == 'de' else \
+            settings.FRONTEND_URL + 'confirm-email-link-en.php'
+        print(url)
         try:
             requests.post(
                 url,
@@ -43,7 +44,8 @@ class RegistrationView(APIView):
                     'email': saved_user.email,
                     'token': token,
                     'frontend_url': settings.FRONTEND_URL + 'signUp/',
-                    'logo': settings.EMAIL_CONFIRM_URL + 'Logo.png',
+                    'logo': settings.FRONTEND_URL + 'Logo.png',
+                    'mail_server': settings.MAIL_SERVER,
                 },
                 headers={'Content-Type': 'application/json'},
                 timeout=5
@@ -91,8 +93,8 @@ class ResetPasswordView(APIView):
 
         token = secrets.token_hex(32)
         PasswordForgetToken.objects.create(user=saved_user, token=token)
-        url = settings.EMAIL_CONFIRM_URL + 'send-reset-link-de.php' if lang == 'de' else \
-            settings.EMAIL_CONFIRM_URL + 'send-reset-link-en.php'
+        url = settings.FRONTEND_URL + 'send-reset-link-de.php' if lang == 'de' else \
+            settings.FRONTEND_URL + 'send-reset-link-en.php'
 
         try:
             requests.post(
@@ -101,7 +103,8 @@ class ResetPasswordView(APIView):
                     'email': saved_user.email,
                     'token': token,
                     'frontend_url': settings.FRONTEND_URL + 'reset/',
-                    'logo': settings.EMAIL_CONFIRM_URL + 'Logo.png',
+                    'logo': settings.FRONTEND_URL + 'Logo.png',
+                    'mail_server': settings.MAIL_SERVER,
                 },
                 headers={'Content-Type': 'application/json'},
                 timeout=5
