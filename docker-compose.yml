@@ -11,16 +11,22 @@ services:
         condition: service_healthy
         restart: true
       redis:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - .env
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+
   rqworker_720p:
     build: .
     container_name: videoflix_rqworker_720p
     command: python manage.py rqworker queue_720p
     depends_on:
-      redis:
+      web:
         condition: service_started
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/app
     env_file:
@@ -31,8 +37,10 @@ services:
     container_name: videoflix_rqworker_360p
     command: python manage.py rqworker queue_360p
     depends_on:
-      redis:
+      web:
         condition: service_started
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/app
     env_file:
@@ -43,32 +51,42 @@ services:
     container_name: videoflix_rqworker_240p
     command: python manage.py rqworker queue_240p
     depends_on:
-      redis:
+      web:
         condition: service_started
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/app
     env_file:
       - .env
+
   rqworker_clear_token:
     build: .
     container_name: videoflix_rqworker_token
     command: python manage.py rqworker queue_token
     depends_on:
-      redis:
+      web:
         condition: service_started
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/app
     env_file:
       - .env
+
   rq-scheduler:
     build: .
     command: python manage.py rqscheduler
     depends_on:
-      - redis
+      web:
+        condition: service_started
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/app
     env_file:
       - .env
+
   db:
     image: postgres:17
     container_name: postgres_db
