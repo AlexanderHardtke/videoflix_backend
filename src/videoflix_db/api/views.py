@@ -43,6 +43,8 @@ class RegistrationView(APIView):
                 json={
                     'email': saved_user.email,
                     'token': token,
+                    'frontend_url': settings.FRONTEND_URL + 'signUp/',
+                    'logo': settings.EMAIL_CONFIRM_URL + 'Logo.png',
                 },
                 headers={'Content-Type': 'application/json'},
                 timeout=5
@@ -99,6 +101,8 @@ class ResetPasswordView(APIView):
                 json={
                     'email': saved_user.email,
                     'token': token,
+                    'frontend_url': settings.FRONTEND_URL + 'reset/',
+                    'logo': settings.EMAIL_CONFIRM_URL + 'Logo.png',
                 },
                 headers={'Content-Type': 'application/json'},
                 timeout=5

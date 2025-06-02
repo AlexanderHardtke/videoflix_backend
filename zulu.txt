@@ -21,16 +21,8 @@ Bearbeiten
 {% endwith %}
 
 
-200 ok
-201 created
-202 accepted
-
-
-400 bad request rest
-401 unauthorized is klar ne
-403 forbidden wenn standard User videos einstellen will
-405 method not allowed is auch klar
-415 unsupported media type
+"https://videoflix.alexander-hardtke.com/Logo.png";
+ $activateLink = "https://videoflix.alexander-hardtke.com/signUp/" . urlencode($token);
 
 make educational videos
 1 Test driven developement
