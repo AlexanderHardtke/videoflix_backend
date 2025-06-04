@@ -178,7 +178,7 @@ class FileUploadView(APIView):
         serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
             user_profil = request.user.userprofil
-            serializer.save(uploaded_by=user_profil)
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

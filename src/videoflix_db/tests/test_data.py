@@ -33,5 +33,4 @@ def create_video(user):
             "test.jpg", b"fake image content", content_type="image/jpeg"),
         file1080p=SimpleUploadedFile(
             "test.mp4", b"fake video content", content_type="video/mp4"),
-        uploaded_by=user
     )

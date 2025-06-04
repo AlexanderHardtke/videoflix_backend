@@ -39,14 +39,12 @@ class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         fields = ['id', 'name', 'type', 'image', 'file1080p']
-        read_only_fields = ['uploaded_by']
 
 
 class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        exclude = ['uploaded_by']
 
 
 class VideoListSerializer(serializers.ModelSerializer):

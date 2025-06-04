@@ -42,6 +42,8 @@ class Video(models.Model):
         ('tutorials', 'Tutorials')
     ]
     name = models.CharField(max_length=50, default='')
+    descriptionEN = models.TextField(max_length=1000, default='')
+    descriptionDE = models.TextField(max_length=1000, default='')
     type = models.CharField(
         max_length=50, choices=video_types, default='movies')
     image = models.FileField(max_length=99, blank=True,
@@ -53,8 +55,6 @@ class Video(models.Model):
     file240p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     filePreview144p = models.FileField(max_length=99, blank=True, upload_to='previews/')
     uploaded_at = models.DateTimeField(auto_now_add=True, editable=False)
-    uploaded_by = models.ForeignKey(
-        UserProfil, on_delete=models.CASCADE, related_name='videos')
 
 
 class WatchedVideo(models.Model):

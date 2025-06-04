@@ -32,8 +32,7 @@ class VideoUploadTests(APITestCase):
             'name': 'Test Video',
             'type': 'training',
             'image': self.image,
-            'file1080p': self.video,
-            'uploaded_by': self.admin.id
+            'file1080p': self.video
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -45,8 +44,7 @@ class VideoUploadTests(APITestCase):
             'name': 'Test Video',
             'type': 'fail',
             'image': 'fail',
-            'file1080p': 'fail',
-            'uploaded_by': self.admin.id
+            'file1080p': 'fail'
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -57,8 +55,7 @@ class VideoUploadTests(APITestCase):
             'name': 'Test Video',
             'type': 'training',
             'image': self.image,
-            'file1080p': self.video,
-            'uploaded_by': self.admin.id
+            'file1080p': self.video
         }
         response = client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -68,8 +65,7 @@ class VideoUploadTests(APITestCase):
             'name': 'Test Video',
             'type': 'training',
             'image': self.image,
-            'file1080p': self.video,
-            'uploaded_by': self.admin.id
+            'file1080p': self.video
         }
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
@@ -81,8 +77,7 @@ class VideoUploadTests(APITestCase):
             'name': 'Test Video',
             'type': 'training',
             'image': self.image,
-            'file1080p': self.image,
-            'uploaded_by': self.admin.id
+            'file1080p': self.image
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code,
@@ -251,8 +246,7 @@ class VideoTests(APITestCase):
             'name': 'Test Video',
             'type': 'training',
             'image': image,
-            'file1080p': video,
-            'uploaded_by': self.admin.id
+            'file1080p': video
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -264,8 +258,7 @@ class VideoTests(APITestCase):
             'name': 'Test Video',
             'type': 'training',
             'image': image,
-            'file1080p': video,
-            'uploaded_by': self.admin.id
+            'file1080p': video
         }
         response = self.client.post(self.url, data)
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
