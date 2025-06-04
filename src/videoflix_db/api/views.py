@@ -146,7 +146,8 @@ class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
             data=request.data, context={'request': request})
-
+        print(request.data)
+        print(request)
         if not serializer.is_valid():
             return Response({'error': 'Incorrect username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -176,7 +177,8 @@ class FileUploadView(APIView):
             raise UnsupportedMediaType(media_type=file.content_type)
         serializer = FileUploadSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user_profil = request.user.userprofil
+            serializer.save(uploaded_by=user_profil)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
