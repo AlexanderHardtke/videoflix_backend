@@ -45,6 +45,7 @@ class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
+        exclude = ['descriptionEN', 'descriptionDE', 'type', 'image', 'filePreview144p', 'uploaded_at']
 
 
 class VideoListSerializer(serializers.ModelSerializer):
@@ -52,7 +53,7 @@ class VideoListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = ['name', 'url', 'type', 'image']
+        fields = ['name', 'url', 'type', 'image', 'filePreview144p', 'descriptionEN', 'descriptionDE', 'uploaded_at']
 
 
 class WatchedVideoSerializer(serializers.ModelSerializer):
