@@ -46,6 +46,8 @@ class Video(models.Model):
     descriptionDE = models.TextField(max_length=1000, default='')
     type = models.CharField(
         max_length=50, choices=video_types, default='movies')
+    bigImage = models.FileField(max_length=99, blank=True,
+                             null=True, upload_to='images/')
     image = models.FileField(max_length=99, blank=True,
                              null=True, upload_to='images/')
     file1080p = models.FileField(

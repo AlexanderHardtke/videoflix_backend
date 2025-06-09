@@ -15,7 +15,7 @@ def video_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def auto_delete_video_on_delete(sender, instance, **kwargs):
-    fields = ['file1080p', 'file720p', 'file360p', 'file240p', 'preview144p']
+    fields = ['file1080p', 'file720p', 'file360p', 'file240p', 'preview144p', '_preview', '_big']
     for field in fields:
         file_field = getattr(instance, field)
         if file_field and os.path.isfile(file_field.path):

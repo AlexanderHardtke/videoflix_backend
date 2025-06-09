@@ -15,7 +15,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['password'] != data['repeated_password']:
             raise serializers.ValidationError(
-                {"repeated_password": "Passwords don't match"}
+                {'repeated_password': "Passwords don't match"}
             )
         return data
 
@@ -38,14 +38,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
-        fields = ['id', 'name', 'type', 'image', 'file1080p']
+        fields = ['id', 'name', 'type', 'bigImage', 'image', 'file1080p']
 
 
 class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        exclude = ['descriptionEN', 'descriptionDE', 'type', 'image', 'filePreview144p', 'uploaded_at']
+        exclude = [
+            'descriptionEN', 'descriptionDE', 'type',
+            'bigImage', 'image', 'filePreview144p', 'uploaded_at'
+        ]
 
 
 class VideoListSerializer(serializers.ModelSerializer):
@@ -53,11 +56,15 @@ class VideoListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = ['name', 'url', 'type', 'image', 'filePreview144p', 'descriptionEN', 'descriptionDE', 'uploaded_at']
+        fields = [
+            'name', 'url', 'type', 'image',
+            'filePreview144p', 'descriptionEN',
+            'descriptionDE', 'uploaded_at'
+        ]
 
 
 class WatchedVideoSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = WatchedVideo
         fields = ['id', 'video', 'watched_until']

@@ -32,11 +32,11 @@ def get_video_duration(video_path):
         return None
 
 
-def convert_preview_image(video, source):
-    preview_target = source[:-4] + "_preview.jpg"
+def convert_preview_image(video, source, scale, name):
+    preview_target = source[:-4] + name
     cmd = [
         'ffmpeg', '-ss', '00:00:01', '-i', source, '-vframes',
-        '1', '-vf', 'scale=-2:144', preview_target
+        '1', '-vf', scale, preview_target
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
@@ -94,7 +94,9 @@ def convert_preview_144p(video_id, source):
     ]
     convert_and_save(cmd, video, target, 'Preview144p')
     if not video.image:
-        convert_preview_image(video, source)
+        convert_preview_image(video, source, 'scale=-2:144', '_preview')
+    if not video.bigImage:
+        convert_preview_image(video, source, 'scale=1920:1080', '_big')
 
 
 @job('queue_token')
