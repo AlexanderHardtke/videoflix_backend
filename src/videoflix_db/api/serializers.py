@@ -37,17 +37,22 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 class FileUploadSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='upload-detail')
+    bigImage = serializers.FileField(required=False, allow_null=True, help_text="Optional: Big image for the video")
+    image = serializers.FileField(required=False, allow_null=True, help_text="Optional: Preview iamge for the video")
+    file1080p = serializers.FileField(required=True, help_text="Required: Highest Quality Video for compression")
 
     class Meta:
         model = Video
-        fields = ['id', 'url', 'name', 'type', 'bigImage', 'image', 'file1080p']
+        fields = ['id', 'url', 'name', 'type', 'descriptionEN', 'descriptionDE', 'bigImage', 'image', 'file1080p']
 
 
 class FileEditSerializer(serializers.ModelSerializer):
+    bigImage = serializers.FileField(required=False, allow_null=True, help_text="Optional: Big image for the video")
+    image = serializers.FileField(required=False, allow_null=True, help_text="Optional: Preview iamge for the video")
     
     class Meta:
         model = Video
-        fields = ['id', 'name', 'type', 'bigImage', 'image', 'file1080p']
+        fields = ['id', 'name', 'type', 'descriptionEN', 'descriptionDE', 'bigImage', 'image']
 
 
 class VideoSerializer(serializers.ModelSerializer):

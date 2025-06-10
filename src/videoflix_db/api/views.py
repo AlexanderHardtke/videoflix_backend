@@ -174,16 +174,11 @@ class FileUploadView(generics.ListCreateAPIView):
     serializer_class = FileUploadSerializer
     permission_classes = [IsAdminUser]
 
-    def post(self, request, format=None):
-        file = request.FILES.get('file1080p')
+    def perform_create(self, serializer):
+        file = self.request.FILES.get('file1080p')
         if file and not file.content_type.startswith('video/'):
             raise UnsupportedMediaType(media_type=file.content_type)
-        serializer = FileUploadSerializer(data=request.data)
-        if serializer.is_valid():
-            user_profil = request.user.userprofil
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
     
 
 class FileEditView(generics.RetrieveUpdateDestroyAPIView):
@@ -191,14 +186,11 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = FileEditSerializer
     permission_classes = [IsAdminUser]
 
-    def patch(self, request, pk, format=None):
-        file_instance = get_object_or_404(Video, pk=pk)
-        serializer = FileUploadSerializer(
-            file_instance, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_update(self, serializer):
+        file = self.request.FILES.get('file1080p')
+        if file and not file.content_type.startswith('video/'):
+            raise UnsupportedMediaType(media_type=file.content_type)
+        serializer.save()
 
     def delete(self, request, pk=None, format=None):
         file_instance = get_object_or_404(Video, pk=pk)
