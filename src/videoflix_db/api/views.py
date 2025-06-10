@@ -4,13 +4,14 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.conf import settings
 from rest_framework import status, viewsets, mixins
 from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailConfirmationToken, UserProfil
-from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer
+from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .permissions import IsEmailConfirmed
 import secrets
 import requests
@@ -168,7 +169,9 @@ class LoginView(ObtainAuthToken):
         return Response(data, status=status.HTTP_201_CREATED)
 
 
-class FileUploadView(APIView):
+class FileUploadView(generics.ListCreateAPIView):
+    queryset = Video.objects.all()
+    serializer_class = FileUploadSerializer
     permission_classes = [IsAdminUser]
 
     def post(self, request, format=None):
@@ -181,6 +184,12 @@ class FileUploadView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class FileEditView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Video.objects.all()
+    serializer_class = FileEditSerializer
+    permission_classes = [IsAdminUser]
 
     def patch(self, request, pk, format=None):
         file_instance = get_object_or_404(Video, pk=pk)

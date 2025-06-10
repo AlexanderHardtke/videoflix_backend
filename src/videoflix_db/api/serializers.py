@@ -36,6 +36,15 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(view_name='upload-detail')
+
+    class Meta:
+        model = Video
+        fields = ['id', 'url', 'name', 'type', 'bigImage', 'image', 'file1080p']
+
+
+class FileEditSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Video
         fields = ['id', 'name', 'type', 'bigImage', 'image', 'file1080p']

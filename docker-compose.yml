@@ -14,10 +14,12 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    command: >
-      sh -c "python manage.py migrate &&
-        python manage.py createsuperuser --noinput --username $DJANGO_SUPERUSER_USERNAME --email $DJANGO_SUPERUSER_EMAIL &&
-        python manage.py runserver 0.0.0.0:8000"
+    command: >-
+      sh -c "
+        python manage.py migrate --noinput &&
+        python manage.py ensure_superuser &&
+        python manage.py runserver 0.0.0.0:8000
+      "
 
   rqworker_720p:
     build: .
