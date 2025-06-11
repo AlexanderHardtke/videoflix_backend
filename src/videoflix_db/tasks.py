@@ -6,17 +6,17 @@ from .models import Video
 import subprocess
 
 
-def convert_and_save(cmd, video, target, resolution):
+def convert_and_save(cmd, video, target, field):
     try:
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
-            print(f"[ERROR] {resolution} FFmpeg-Fehler:\n{result.stderr}")
+            print(f"[ERROR] {field} FFmpeg-Fehler:\n{result.stderr}")
             return
         relative_path = target.replace(settings.MEDIA_ROOT + '/', '')
-        setattr(video, f'file'+resolution, relative_path)
-        video.save(update_fields=[f'file'+resolution])
+        setattr(video, field, relative_path)
+        video.save(update_fields=[field])
     except Exception as e:
-        print(f"[CRITICAL] {resolution} Ausnahme: {str(e)}")
+        print(f"[CRITICAL] {field} Ausnahme: {str(e)}")
 
 
 def get_video_duration(video_path):
@@ -32,23 +32,32 @@ def get_video_duration(video_path):
         return None
 
 
-def convert_preview_image(video, source, scale, name):
-    preview_target = source[:-4] + name
+def create_big_img_from_video(source, video):
+    target = source[:-4] + '_bigImage.jpg'
     cmd = [
-        'ffmpeg', '-ss', '00:00:01', '-i', source, '-vframes',
-        '1', '-vf', scale, preview_target
+        'ffmpeg', '-y', '-ss', '00:00:02', '-i', source,
+        '-vframes', '1', '-vf', 'scale=1920:1080', target
     ]
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"[ERROR] Screenshot-FFmpeg-Fehler:\n{result.stderr}")
-            return
-        relative_image_path = preview_target.replace(
-            settings.MEDIA_ROOT + '/', '')
-        video.image.name = relative_image_path
-        video.save(update_fields=['image'])
-    except Exception as e:
-        print(f"[CRITICAL] Screenshot konnte nicht erstellt werden: {e}")
+    convert_and_save(cmd, video, target, 'bigImage')
+
+
+def create_small_img_from_video(source, video):
+    target = source[:-4] + '_image.jpg'
+    cmd = [
+        'ffmpeg', '-y', '-ss', '00:00:02', '-i', source,
+        '-vframes', '1', '-vf', 'scale=320:180', target
+    ]
+    convert_and_save(cmd, video, target, 'image')
+
+
+def create_small_img_from_img(source, video):
+    target = source[:-4] + '_image.jpg'
+    source_img = video.bigImage.path
+    cmd = [
+        'ffmpeg', '-y', '-i', source_img,
+        '-vf', 'scale=320:180', target
+    ]
+    convert_and_save(cmd, video, target, 'image')
 
 
 @job('queue_720p')
@@ -57,7 +66,7 @@ def convert_720p(video_id, source):
     target = source[:-4] + '_720p.mp4'
     cmd = ['ffmpeg', '-i', source, '-s', '1280x720', '-c:v', 'libx264',
            '-crf', '23', '-c:a', 'aac', '-strict', '-2', target]
-    convert_and_save(cmd, video, target, '720p')
+    convert_and_save(cmd, video, target, 'file720p')
 
 
 @job('queue_360p')
@@ -66,7 +75,7 @@ def convert_360p(video_id, source):
     target = source[:-4] + '_360p.mp4'
     cmd = ['ffmpeg', '-i', source, '-s', '640x360', '-c:v', 'libx264',
            '-crf', '23', '-c:a', 'aac', '-strict', '-2', target]
-    convert_and_save(cmd, video, target, '360p')
+    convert_and_save(cmd, video, target, 'file360p')
 
 
 @job('queue_240p')
@@ -75,7 +84,7 @@ def convert_240p(video_id, source):
     target = source[:-4] + '_240p.mp4'
     cmd = ['ffmpeg', '-i', source, '-s', '426x240', '-c:v', 'libx264',
            '-crf', '23', '-c:a', 'aac', '-strict', '-2', target]
-    convert_and_save(cmd, video, target, '240p')
+    convert_and_save(cmd, video, target, 'file240p')
 
 
 @job('queue_preview144p')
@@ -92,11 +101,17 @@ def convert_preview_144p(video_id, source):
         f'setpts=PTS/{speed_factor},scale=-2:144', '-an', '-r',
         '8', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '35', target
     ]
-    convert_and_save(cmd, video, target, 'Preview144p')
-    if not video.image:
-        convert_preview_image(video, source, 'scale=-2:144', '_preview')
+    convert_and_save(cmd, video, target, 'filePreview144p')
+
+
+@job('queue_image')
+def convert_preview_images(video_id, source):
+    video = Video.objects.get(id=video_id)
     if not video.bigImage:
-        convert_preview_image(video, source, 'scale=1920:1080', '_big')
+        create_big_img_from_video(source, video)
+        create_small_img_from_video(source, video)
+    else:
+        create_small_img_from_img(source, video)
 
 
 @job('queue_token')

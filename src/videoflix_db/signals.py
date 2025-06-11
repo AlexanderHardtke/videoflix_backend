@@ -1,4 +1,4 @@
-from .tasks import convert_720p, convert_360p, convert_240p, convert_preview_144p
+from .tasks import convert_720p, convert_360p, convert_240p, convert_preview_144p, convert_preview_images
 from .models import Video
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
@@ -12,6 +12,7 @@ def video_post_save(sender, instance, created, **kwargs):
         convert_360p.delay(instance.id, instance.file1080p.path)
         convert_240p.delay(instance.id, instance.file1080p.path)
         convert_preview_144p.delay(instance.id, instance.file1080p.path)
+        convert_preview_images.delay(instance.id, instance.file1080p.path)
 
 @receiver(post_delete, sender=Video)
 def auto_delete_video_on_delete(sender, instance, **kwargs):

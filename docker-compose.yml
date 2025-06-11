@@ -75,6 +75,19 @@ services:
       - ./src:/app
     env_file:
       - .env
+  rqworker_images:
+    build: .
+    container_name: videoflix_rqworker_images
+    command: python manage.py rqworker queue_image
+    depends_on:
+      web:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./src:/app
+    env_file:
+      - .env
 
   rqworker_clear_token:
     build: .

@@ -47,9 +47,9 @@ class Video(models.Model):
     type = models.CharField(
         max_length=50, choices=video_types, default='movies')
     bigImage = models.FileField(max_length=99, blank=True,
-                             null=True, upload_to='images/')
+                             null=True, upload_to='movies/')
     image = models.FileField(max_length=99, blank=True,
-                             null=True, upload_to='images/')
+                             null=True, upload_to='movies/')
     file1080p = models.FileField(
         max_length=99, blank=True, upload_to='movies/')
     file720p = models.FileField(max_length=99, blank=True, upload_to='movies/')
