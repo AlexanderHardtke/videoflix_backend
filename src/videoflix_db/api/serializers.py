@@ -46,11 +46,10 @@ class FileUploadSerializer(serializers.ModelSerializer):
 
 
 class FileEditSerializer(serializers.ModelSerializer):
-    bigImage = serializers.FileField(help_text="Optional: Big image for the video")
     
     class Meta:
         model = Video
-        fields = ['id', 'name', 'type', 'descriptionEN', 'descriptionDE', 'bigImage']
+        fields = ['id', 'name', 'type', 'descriptionEN', 'descriptionDE']
 
 
 class VideoSerializer(serializers.ModelSerializer):
