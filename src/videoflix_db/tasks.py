@@ -114,7 +114,7 @@ def convert_preview_images(video_id, source):
         create_small_img_from_img(source, video)
 
 
-@job('queue_token', result_ttl=43200)
+@job('queue_token', result_ttl=0)
 def clear_token():
     now = timezone.now()
     expired_pw_tokens = PasswordForgetToken.objects.filter(

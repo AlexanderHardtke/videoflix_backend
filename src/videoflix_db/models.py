@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-import uuid
 import secrets
+import os
 
 
 class UserProfil(AbstractUser):
@@ -35,12 +35,7 @@ class PasswordForgetToken(models.Model):
 
 
 class Video(models.Model):
-    video_types = [
-        ('animals', 'Animals'),
-        ('nature', 'Nature'),
-        ('training', 'Training'),
-        ('tutorials', 'Tutorials')
-    ]
+    video_types = [(x, x.capitalize()) for x in os.environ.get('VIDEO_TYPES', '').split(',') if x]
     name = models.CharField(max_length=50, default='')
     descriptionEN = models.TextField(max_length=1000, default='')
     descriptionDE = models.TextField(max_length=1000, default='')

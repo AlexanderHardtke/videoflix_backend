@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailConfirmationToken, UserProfil
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .permissions import IsEmailConfirmed
+from .pagination import TypeBasedPagination
 import secrets
 import requests
 
@@ -200,14 +201,19 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, IsEmailConfirmed]
-
-    queryset = Video.objects.all()
+    queryset = Video.objects.all().order_by('type', 'uploaded_at')
     serializer_class = VideoSerializer
 
     def get_serializer_class(self):
         if self.action == 'list':
             return VideoListSerializer
         return VideoSerializer
+    
+    def list(self, request, *args, **kwargs):
+        paginator = TypeBasedPagination()
+        paginated_queryset = paginator.paginate_queryset(self.queryset, request, view=self)
+        serializer = self.get_serializer(paginated_queryset, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         video_id = kwargs['pk']
