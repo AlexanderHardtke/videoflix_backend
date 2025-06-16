@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin
 
 admin.site.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    readonly_fields = ['file720p', 'file360p', 'file240p', 'preview144p']
+    readonly_fields = ['file720p', 'file360p', 'file240p', 'file_preview144p']
 
 
 admin.site.register(WatchedVideo)

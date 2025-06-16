@@ -1,80 +1,69 @@
-from datetime import timezone
+from datetime import timedelta
 from django.utils import timezone
-from rest_framework.pagination import PageNumberPagination, BasePagination
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from collections import defaultdict
+from urllib.parse import urlencode
 import os
-from django.conf import settings
 
 
 class TypeBasedPagination(PageNumberPagination):
-    page_size = 8
-    page_size_per_type = 8
+    page_size_per_type = 80
     page_size_query_param = 'list_size'
     max_page_size = 99
     page_query_param = 'list'
-    video_types = [x for x in os.environ.get('VIDEO_TYPES').split(',') if x]
 
-    # def paginate_queryset(self, queryset, request, view=None):
-    #     keks = os.environ.get('VIDEO_TYPES', '')
-    #     print(keks)
-    #     self.request = request
-    #     self.page = int(request.query_params.get(self.page_query_param, 1))
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+        self.video_types = [x.strip() for x in os.environ.get('VIDEO_TYPES', '').split(',') if x.strip()]
+        self.video_types = ['animals', 'nature', 'training', 'tutorials']
 
-    #     grouped = defaultdict(list)
-    #     for video in queryset:
-    #         grouped[video.type].append(video)
+        self.page_number = int(request.query_params.get(self.page_query_param, 1))
+        self.start = (self.page_number - 1) * self.page_size_per_type
+        self.end = self.start + self.page_size_per_type
 
-    #     # Pro Typ nur max `page_size_per_type` Elemente holen
-    #     limited_per_type = []
-    #     for videos in grouped.values():
-    #         limited_per_type.extend(islice(videos, self.page_size_per_type))
+        result = []
 
-    #     # Gesamtliste paginieren (z.B. page 1 = erste 20 Videos, page 2 = nächste 20 ...)
-    #     self.total_items = len(limited_per_type)
-    #     self.page_size = self.page_size_per_type * len(grouped)
+        for video_type in self.video_types:
+            type_videos = queryset.filter(
+                video_type=video_type
+            ).order_by('-uploaded_at')[self.start:self.end]
 
-    #     start = (self.page - 1) * self.page_size
-    #     end = start + self.page_size
+            for video in type_videos:
+                video.override_type = video_type
+                result.append(video)
 
-    #     self.paginated_items = limited_per_type[start:end]
-    #     return self.paginated_items
+        # Gesamtanzahl (optional)
+        self.count = sum([
+            queryset.filter(video_type=vt).count()
+            for vt in self.video_types
+        ])
 
-    # def get_paginated_response(self, data):
-    #     return Response({
-    #         'count': self.total_items,
-    #         'page': self.page,
-    #         'next': self._get_next_link(),
-    #         'previous': self._get_prev_link(),
-    #         'results': data
-    #     })
-
-    # def _get_next_link(self):
-    #     if self.page * self.page_size >= self.total_items:
-    #         return None
-    #     url = self.request.build_absolute_uri()
-    #     return self._replace_query_param(url, self.page_query_param, self.page + 1)
-
-    # def _get_prev_link(self):
-    #     if self.page == 1:
-    #         return None
-    #     url = self.request.build_absolute_uri()
-    #     return self._replace_query_param(url, self.page_query_param, self.page - 1)
-
-    # def _replace_query_param(self, url, key, value):
-    #     from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
-
-    #     parsed = urlparse(url)
-    #     query = parse_qs(parsed.query)
-    #     query[key] = [str(value)]
-    #     new_query = urlencode(query, doseq=True)
-    #     return urlunparse(parsed._replace(query=new_query))
+        return result
 
     def get_paginated_response(self, data):
-
+        # Basis-URL ohne Query-Parameter
+        base_url = self.request.build_absolute_uri().split('?')[0]
+        current_params = dict(self.request.query_params)
+        
+        # Next URL
+        next_url = None
+        if data and len(data) >= self.page_size_per_type * (len(self.video_types) + 1):
+            next_params = current_params.copy()
+            next_params[self.page_query_param] = [str(self.page_number + 1)]
+            next_url = f"{base_url}?{urlencode(next_params, doseq=True)}"
+        
+        # Previous URL
+        prev_url = None
+        if self.page_number > 1:
+            prev_params = current_params.copy()
+            prev_params[self.page_query_param] = [str(self.page_number - 1)]
+            prev_url = f"{base_url}?{urlencode(prev_params, doseq=True)}"
+        
         return Response({
-            'count': self.page.paginator.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data
+            'list': data,
+            'count': self.count,
+            'list_size': self.page_size_per_type,
+            'list_page': self.page_number,
+            'next': next_url,
+            'previous': prev_url,
         })

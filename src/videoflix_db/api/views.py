@@ -201,7 +201,7 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, IsEmailConfirmed]
-    queryset = Video.objects.all().order_by('type', 'uploaded_at')
+    queryset = Video.objects.all().order_by('video_type', 'uploaded_at')
     serializer_class = VideoSerializer
 
     def get_serializer_class(self):

@@ -38,20 +38,16 @@ class PasswordForgetToken(models.Model):
 class Video(models.Model):
     video_types = [(x, x.capitalize()) for x in os.environ.get('VIDEO_TYPES', '').split(',') if x]
     name = models.CharField(max_length=50, default='')
-    descriptionEN = models.TextField(max_length=1000, default='')
-    descriptionDE = models.TextField(max_length=1000, default='')
-    type = models.CharField(
-        max_length=50, choices=video_types, default='movies')
-    bigImage = models.FileField(max_length=99, blank=True,
-                             null=True, upload_to='movies/')
-    image = models.FileField(max_length=99, blank=True,
-                             null=True, upload_to='movies/')
-    file1080p = models.FileField(
-        max_length=99, blank=True, upload_to='movies/')
+    description_en = models.TextField(max_length=1000, default='')
+    description_de = models.TextField(max_length=1000, default='')
+    video_type = models.CharField(max_length=50, choices=video_types, default='movies')
+    big_image = models.FileField(max_length=99, blank=True,null=True, upload_to='movies/')
+    image = models.FileField(max_length=99, blank=True,null=True, upload_to='movies/')
+    file1080p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file720p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file360p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file240p = models.FileField(max_length=99, blank=True, upload_to='movies/')
-    filePreview144p = models.FileField(max_length=99, blank=True, upload_to='previews/')
+    file_preview144p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     uploaded_at = models.DateTimeField(auto_now_add=True, editable=False)
 
 

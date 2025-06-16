@@ -1,3 +1,5 @@
+from datetime import timedelta
+from django.utils import timezone
 from rest_framework import serializers
 from videoflix_db.models import UserProfil, Video, WatchedVideo
 
@@ -37,19 +39,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 class FileUploadSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='upload-detail')
-    bigImage = serializers.FileField(required=False, allow_null=True, help_text="Optional: Big image for the video")
+    big_image = serializers.FileField(required=False, allow_null=True, help_text="Optional: Big image for the video")
     file1080p = serializers.FileField(required=True, help_text="Required: Highest Quality Video for compression")
 
     class Meta:
         model = Video
-        fields = ['id', 'url', 'name', 'type', 'descriptionEN', 'descriptionDE', 'bigImage', 'file1080p']
+        fields = ['id', 'url', 'name', 'video_type', 'description_en', 'description_de', 'bigImage', 'file1080p']
 
 
 class FileEditSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Video
-        fields = ['id', 'name', 'type', 'descriptionEN', 'descriptionDE']
+        fields = ['id', 'name', 'video_type', 'description_en', 'description_de']
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -57,21 +59,26 @@ class VideoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
         exclude = [
-            'descriptionEN', 'descriptionDE', 'type',
-            'bigImage', 'image', 'filePreview144p', 'uploaded_at'
+            'description_en', 'description_de', 'video_type',
+            'big_image', 'image', 'file_preview144p', 'uploaded_at'
         ]
 
 
 class VideoListSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='video-detail')
+    type = serializers.SerializerMethodField() 
 
     class Meta:
         model = Video
         fields = [
-            'name', 'url', 'type', 'image', 'bigImage', 
-            'filePreview144p', 'descriptionEN',
-            'descriptionDE', 'uploaded_at'
+            'name', 'url', 'video_type', 'image', 'big_image', 
+            'file_preview144p', 'description_en',
+            'description_de', 'uploaded_at'
         ]
+
+    def get_type(self, obj):
+        return getattr(obj, 'override_type', obj.video_type)
+
 
 
 class WatchedVideoSerializer(serializers.ModelSerializer):

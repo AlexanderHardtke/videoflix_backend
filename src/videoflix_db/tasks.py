@@ -38,7 +38,7 @@ def create_big_img_from_video(source, video):
         'ffmpeg', '-y', '-ss', '00:00:02', '-i', source,
         '-vframes', '1', '-vf', 'scale=1920:1080', target
     ]
-    convert_and_save(cmd, video, target, 'bigImage')
+    convert_and_save(cmd, video, target, 'big_image')
 
 
 def create_small_img_from_video(source, video):
@@ -101,7 +101,7 @@ def convert_preview_144p(video_id, source):
         f'setpts=PTS/{speed_factor},scale=-2:144', '-an', '-r',
         '8', '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '35', target
     ]
-    convert_and_save(cmd, video, target, 'filePreview144p')
+    convert_and_save(cmd, video, target, 'file_preview144p')
 
 
 @job('queue_image')
