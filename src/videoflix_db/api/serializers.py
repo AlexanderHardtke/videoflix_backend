@@ -1,5 +1,3 @@
-from datetime import timedelta
-from django.utils import timezone
 from rest_framework import serializers
 from videoflix_db.models import UserProfil, Video, WatchedVideo
 
@@ -75,10 +73,6 @@ class VideoListSerializer(serializers.ModelSerializer):
             'file_preview144p', 'description_en',
             'description_de', 'uploaded_at'
         ]
-
-    def get_type(self, obj):
-        return getattr(obj, 'override_type', obj.video_type)
-
 
 
 class WatchedVideoSerializer(serializers.ModelSerializer):

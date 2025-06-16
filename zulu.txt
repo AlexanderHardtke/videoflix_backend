@@ -24,10 +24,6 @@ Bearbeiten
 "https://videoflix.alexander-hardtke.com/Logo.png";
  $activateLink = "https://videoflix.alexander-hardtke.com/signUp/" . urlencode($token);
 
-make educational videos
-1 Test driven developement
-2 How to 
-
 
 docker compose up --build
 docker compose up
