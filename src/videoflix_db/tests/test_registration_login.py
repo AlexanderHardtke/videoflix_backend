@@ -28,7 +28,7 @@ class CreateUserTests(APITestCase):
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.mock_post.assert_called_once()
-        self.assertEqual(response.data['registration'], 'Confirm your email address')
+        self.assertEqual(response.data['error'], 'Confirm your email address')
 
     def test_duplicate_user(self):
         data = {
@@ -39,7 +39,7 @@ class CreateUserTests(APITestCase):
         response = self.client.post(self.url, data, format='json')
         response_duplicate = self.client.post(self.url, data, format='json')
         self.assertEqual(response_duplicate.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response_duplicate.data['registration'], 'Confirm your email address')
+        self.assertEqual(response_duplicate.data['error'], 'Confirm your email address')
         self.assertEqual(self.mock_post.call_count, 2)
 
     def test_fail_password_create_user(self):
@@ -114,7 +114,7 @@ class UserLoginTests(APITestCase):
         }
         response = self.client.post(self.url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-        self.assertEqual(response.data['registration'], 'Confirm your email address')
+        self.assertEqual(response.data['error'], 'Confirm your email address')
 
 
 class ActivateAccountTests(APITestCase):

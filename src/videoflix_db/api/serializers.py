@@ -42,7 +42,7 @@ class FileUploadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = ['id', 'url', 'name', 'video_type', 'description_en', 'description_de', 'bigImage', 'file1080p']
+        fields = ['id', 'url', 'name', 'video_type', 'description_en', 'description_de', 'big_image', 'file1080p']
 
 
 class FileEditSerializer(serializers.ModelSerializer):
@@ -64,7 +64,6 @@ class VideoSerializer(serializers.ModelSerializer):
 
 class VideoListSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='video-detail')
-    type = serializers.SerializerMethodField() 
 
     class Meta:
         model = Video

@@ -33,7 +33,7 @@ def get_video_duration(video_path):
 
 
 def create_big_img_from_video(source, video):
-    target = source[:-4] + '_bigImage.jpg'
+    target = source[:-4] + '_big_image.jpg'
     cmd = [
         'ffmpeg', '-y', '-ss', '00:00:02', '-i', source,
         '-vframes', '1', '-vf', 'scale=1920:1080', target
@@ -52,7 +52,7 @@ def create_small_img_from_video(source, video):
 
 def create_small_img_from_img(source, video):
     target = source[:-4] + '_image.jpg'
-    source_img = video.bigImage.path
+    source_img = video.big_image.path
     cmd = [
         'ffmpeg', '-y', '-i', source_img,
         '-vf', 'scale=320:180', target
@@ -107,7 +107,7 @@ def convert_preview_144p(video_id, source):
 @job('queue_image')
 def convert_preview_images(video_id, source):
     video = Video.objects.get(id=video_id)
-    if not video.bigImage:
+    if not video.big_image:
         create_big_img_from_video(source, video)
         create_small_img_from_video(source, video)
     else:

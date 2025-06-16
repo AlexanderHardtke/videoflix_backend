@@ -1,62 +1,63 @@
+from collections import defaultdict
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from urllib.parse import urlencode
+from rest_framework.utils.urls import replace_query_param
 import os
 
 
 class TypeBasedPagination(PageNumberPagination):
-    page_size_per_type = 80
+    page_size = 8
     page_size_query_param = 'list_size'
     max_page_size = 99
     page_query_param = 'list'
 
-    def paginate_queryset(self, queryset, request, view=None):
-        self.request = request
+    def __init__(self):
+        super().__init__()
         self.video_types = [x.strip() for x in os.environ.get('VIDEO_TYPES', '').split(',') if x.strip()]
 
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
         self.page_number = int(request.query_params.get(self.page_query_param, 1))
-        self.start = (self.page_number - 1) * self.page_size_per_type
-        self.end = self.start + self.page_size_per_type
-
-        result = []
+        self.type_count = {}
+        self.type_results = defaultdict(list)
+        self.total_count = 0
 
         for video_type in self.video_types:
-            type_videos = queryset.filter(
-                video_type=video_type
-            ).order_by('-uploaded_at')[self.start:self.end]
+            total, page_videos = self.load_videos_by_type(queryset, video_type)
+            self.type_count[video_type] = total
+            self.total_count += total
+            self.type_results[video_type] = list(page_videos)
 
-            for video in type_videos:
-                video.override_type = video_type
-                result.append(video)
+        flat_result = [video for vt in self.video_types for video in self.type_results[vt]]
+        return flat_result
+    
+    def load_videos_by_type(self, queryset, video_type):
+        videos = queryset.model.objects.filter(video_type=video_type).order_by('-uploaded_at')
+        total = videos.count()
+        start_index = (self.page_number - 1) * self.page_size
+        end_index = start_index + self.page_size
+        page_videos = videos[start_index:end_index]
+        return total, list(page_videos)
 
-        self.count = sum([
-            queryset.filter(video_type=vt).count()
-            for vt in self.video_types
-        ])
+    def has_next_page(self):
+        return any(
+            self.page_number * self.page_size < total
+            for total in self.type_count.values()
+        )
 
-        return result
+    def get_next_link(self):
+        if not self.has_next_page():
+            return None
+        
+        url = self.request.build_absolute_uri()
+        return replace_query_param(url, self.page_query_param, self.page_number + 1)
 
     def get_paginated_response(self, data):
-        base_url = self.request.build_absolute_uri().split('?')[0]
-        current_params = dict(self.request.query_params)
-    
-        next_url = None
-        if data and len(data) >= self.page_size_per_type * (len(self.video_types) + 1):
-            next_params = current_params.copy()
-            next_params[self.page_query_param] = [str(self.page_number + 1)]
-            next_url = f"{base_url}?{urlencode(next_params, doseq=True)}"
-        
-        prev_url = None
-        if self.page_number > 1:
-            prev_params = current_params.copy()
-            prev_params[self.page_query_param] = [str(self.page_number - 1)]
-            prev_url = f"{base_url}?{urlencode(prev_params, doseq=True)}"
-        
         return Response({
             'list': data,
-            'count': self.count,
-            'list_size': self.page_size_per_type,
+            'count': self.total_count,
+            'list_size': self.page_size,
             'list_page': self.page_number,
-            'next': next_url,
-            'previous': prev_url,
+            'has_next': self.has_next_page(),
+            'next': self.get_next_link(),
         })

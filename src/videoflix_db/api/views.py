@@ -52,8 +52,8 @@ class RegistrationView(APIView):
                 timeout=5
             )
         except requests.RequestException as error:
-            return Response({'registration': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'registration': 'Confirm your email address'}, status=status.HTTP_201_CREATED)
+            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'error': 'Confirm your email address'}, status=status.HTTP_201_CREATED)
 
 
 class ConfirmEmailView(APIView):
@@ -148,8 +148,6 @@ class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
             data=request.data, context={'request': request})
-        print(request.data)
-        print(request)
         if not serializer.is_valid():
             return Response({'error': 'Incorrect username or password'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -157,7 +155,7 @@ class LoginView(ObtainAuthToken):
 
         if not user.email_confirmed:
             return Response(
-                {'registration': 'Confirm your email address'},
+                {'error': 'Confirm your email address'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
