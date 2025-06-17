@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.conf import settings
+from django.http import StreamingHttpResponse
 from rest_framework import status, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -14,8 +15,11 @@ from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailC
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .permissions import IsEmailConfirmed
 from .pagination import TypeBasedPagination
+from .utils  import get_video_file, get_range, read_range
+from wsgiref.util import FileWrapper
 import secrets
 import requests
+import os
 
 
 CACHETTL = getattr(settings, 'CACHETTL', DEFAULT_TIMEOUT)
@@ -28,8 +32,7 @@ class RegistrationView(APIView):
 
         if not serializer.is_valid():
             return Response(
-                {'error': serializer.errors},
-                status=status.HTTP_400_BAD_REQUEST,
+                {'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         saved_user = serializer.save()
@@ -63,8 +66,7 @@ class ConfirmEmailView(APIView):
             return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            confirmation_token = EmailConfirmationToken.objects.get(
-                token=token)
+            confirmation_token = EmailConfirmationToken.objects.get(token=token)
         except EmailConfirmationToken.DoesNotExist:
             return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -154,10 +156,7 @@ class LoginView(ObtainAuthToken):
         user = serializer.validated_data['user']
 
         if not user.email_confirmed:
-            return Response(
-                {'error': 'Confirm your email address'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return Response({'error': 'Confirm your email address'},status=status.HTTP_401_UNAUTHORIZED)
 
         token, created = Token.objects.get_or_create(user=user)
         data = {
@@ -200,7 +199,6 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
 class VideoView(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, IsEmailConfirmed]
     queryset = Video.objects.all().order_by('video_type', 'uploaded_at')
-    serializer_class = VideoSerializer
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -233,6 +231,35 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
         meta_with_progress['watched_until'] = watched_video.watched_until
         return Response(meta_with_progress)
 
+
+class VideoStreamView(APIView):
+    permission_classes = [IsAuthenticated, IsEmailConfirmed]
+
+    def get(self, request, pk, quality):
+        video = get_object_or_404(Video ,pk=pk)
+        file_field = get_video_file(video, quality)
+        if not file_field:
+            return Response({'error': 'Quality is not available'}, status=status.HTTP_404_NOT_FOUND)
+        
+        file_path = file_field.path
+        file_size = os.path.getsize(file_path)
+        range_header = request.headers.get('Range')
+        if range_header and 'bytes=' in range_header:
+            start, end, length = get_range(range_header, file_size)
+
+            response = StreamingHttpResponse(read_range(
+                file_path, start, end), status=206, content_type='video/mp4')
+            response['Content-Length'] = str(length)
+            response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
+            response['Accept-Ranges'] = 'bytes'
+            return response
+        
+        response = StreamingHttpResponse(
+            FileWrapper(open(file_path, 'rb')), content_type='video/mp4')
+        response['Content-Length'] = str(file_size)
+        response['Accept-Ranges'] = 'bytes'
+        return response
+                
 
 class WatchedVideoView(viewsets.GenericViewSet,
                        mixins.UpdateModelMixin,

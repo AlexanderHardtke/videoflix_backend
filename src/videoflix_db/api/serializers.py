@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from videoflix_db.models import UserProfil, Video, WatchedVideo
+from rest_framework.reverse import reverse
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -53,13 +54,21 @@ class FileEditSerializer(serializers.ModelSerializer):
 
 
 class VideoSerializer(serializers.ModelSerializer):
+    video_urls = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
-        exclude = [
-            'description_en', 'description_de', 'video_type',
-            'big_image', 'image', 'file_preview144p', 'uploaded_at'
-        ]
+        fields = ['name', 'video_urls']
+
+    def get_video_urls(self, obj):
+        request = self.context.get('request')
+        base = lambda quality: reverse('video-stream', args=[obj.id, quality], request=request)
+        return {
+            '1080p': base('1080p') if obj.file1080p else None,
+            '720p': base('720p') if obj.file720p else None,
+            '360p': base('360p') if obj.file360p else None,
+            '240p': base('240p') if obj.file240p else None,
+        }
 
 
 class VideoListSerializer(serializers.ModelSerializer):

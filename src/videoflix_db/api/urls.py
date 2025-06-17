@@ -1,7 +1,11 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import RegistrationView, FileUploadView, LoginView, VideoView, WatchedVideoView, ConfirmEmailView, ResetPasswordView, ChangePasswordView, FileEditView
+from .views import (
+    RegistrationView, FileUploadView, LoginView, 
+    VideoView, WatchedVideoView, ConfirmEmailView, 
+    ResetPasswordView, ChangePasswordView, FileEditView,
+    VideoStreamView)
 from rest_framework import routers
 
 router = routers.SimpleRouter()
@@ -17,4 +21,5 @@ urlpatterns = [
     path('confirm/', ConfirmEmailView.as_view(), name='confirm-detail'),
     path('reset/', ResetPasswordView.as_view(), name='reset-detail'),
     path('change/', ChangePasswordView.as_view(), name='change-detail'),
+    path('videos/<int:pk>/stream/<str:quality>/', VideoStreamView.as_view(), name='video-stream'),
 ]
