@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from videoflix_db.models import UserProfil, Video, WatchedVideo
-from rest_framework.reverse import reverse
+from .utils import generate_video_url
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
@@ -62,12 +62,11 @@ class VideoSerializer(serializers.ModelSerializer):
 
     def get_video_urls(self, obj):
         request = self.context.get('request')
-        base = lambda quality: reverse('video-stream', args=[obj.id, quality], request=request)
         return {
-            '1080p': base('1080p') if obj.file1080p else None,
-            '720p': base('720p') if obj.file720p else None,
-            '360p': base('360p') if obj.file360p else None,
-            '240p': base('240p') if obj.file240p else None,
+            '1080p': generate_video_url(obj, '1080p', request) if obj.file1080p else None,
+            '720p': generate_video_url(obj, '720p', request) if obj.file720p else None,
+            '360p': generate_video_url(obj, '360p', request) if obj.file360p else None,
+            '240p': generate_video_url(obj, '240p', request) if obj.file240p else None,
         }
 
 

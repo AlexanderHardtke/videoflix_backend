@@ -15,7 +15,7 @@ from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailC
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .permissions import IsEmailConfirmed
 from .pagination import TypeBasedPagination
-from .utils  import get_video_file, get_range, read_range
+from .utils  import get_video_file, get_range, read_range, verify_video_token
 from wsgiref.util import FileWrapper
 import secrets
 import requests
@@ -236,19 +236,28 @@ class VideoStreamView(APIView):
     permission_classes = [IsAuthenticated, IsEmailConfirmed]
 
     def get(self, request, pk, quality):
-        video = get_object_or_404(Video ,pk=pk)
+        token = request.query_params.get('token')
+        expires = request.query_params.get('expires')
+
+        if not token or not expires:
+            return Response({'error': 'Missing or invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not verify_video_token(pk, quality, token, expires):
+            return Response({'error': 'Missing or invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        video = get_object_or_404(Video, pk=pk)
         file_field = get_video_file(video, quality)
         if not file_field:
             return Response({'error': 'Quality is not available'}, status=status.HTTP_404_NOT_FOUND)
         
         file_path = file_field.path
         file_size = os.path.getsize(file_path)
+
         range_header = request.headers.get('Range')
         if range_header and 'bytes=' in range_header:
             start, end, length = get_range(range_header, file_size)
-
-            response = StreamingHttpResponse(read_range(
-                file_path, start, end), status=206, content_type='video/mp4')
+            response = StreamingHttpResponse(
+                read_range(file_path, start, end), status=206, content_type='video/mp4')
             response['Content-Length'] = str(length)
             response['Content-Range'] = f'bytes {start}-{end}/{file_size}'
             response['Accept-Ranges'] = 'bytes'
