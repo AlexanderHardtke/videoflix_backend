@@ -15,7 +15,7 @@ from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailC
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .permissions import IsEmailConfirmed
 from .pagination import TypeBasedPagination
-from .utils  import get_video_file, get_range, read_range, verify_video_token
+from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import secrets
 import requests
@@ -233,16 +233,16 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
 
 
 class VideoStreamView(APIView):
-    permission_classes = [IsAuthenticated, IsEmailConfirmed]
 
     def get(self, request, pk, quality):
         token = request.query_params.get('token')
         expires = request.query_params.get('expires')
+        ip_address = get_ip_adress(request)
 
         if not token or not expires:
             return Response({'error': 'Missing or invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        if not verify_video_token(pk, quality, token, expires):
+        if not verify_video_token(pk, quality, token, expires, ip_address):
             return Response({'error': 'Missing or invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         video = get_object_or_404(Video, pk=pk)

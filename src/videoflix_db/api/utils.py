@@ -1,38 +1,34 @@
 from django.utils import timezone
 from django.conf import settings
-from django.urls import reverse
+from rest_framework.reverse import reverse
 from datetime import timedelta
 from base64 import urlsafe_b64encode
 import hmac
 import hashlib
 
 
-def generate_video_url(obj, quality, request):
-    user = request.user
-    if user.is_staff:
-        valid_minutes = 24 * 60
-    else:
-        valid_minutes = 10
+def generate_video_url(obj, quality, request, valid_minutes=10):
     expires_at = int((timezone.now() + timedelta(minutes=valid_minutes)).timestamp())
-    token = generate_video_token(obj.id, quality, expires_at)
-    path = reverse('video-stream', args=[obj.id, quality], request=request)
+    ip_address = get_ip_adress(request)
+    token = generate_video_token(obj.id, quality, expires_at, ip_address)
+    path = reverse('video-stream', kwargs={'pk': obj.id, 'quality': quality}, request=request)
     return f"{path}?token={token}&expires={expires_at}"
 
-def generate_video_token(video_id, quality, expires_at):
+def generate_video_token(video_id, quality, expires_at, ip_address):
     secret_key = settings.SECRET_KEY.encode()
-    message = f"{video_id}:{quality}:{expires_at}".encode()
+    message = f"{video_id}:{quality}:{expires_at}:{ip_address}".encode()
     signature = hmac.new(secret_key, message, hashlib.sha256).digest()
     token = urlsafe_b64encode(signature).decode().rstrip('=')
     return token
 
-def verify_video_token(video_id, quality, token, expires_at):
+def verify_video_token(video_id, quality, token, expires_at, ip_address):
     try:
         expires_at = int(expires_at)
     except ValueError:
         return False
     if expires_at < int(timezone.now().timestamp()):
         return False
-    expected_token = generate_video_token(video_id, quality, expires_at)
+    expected_token = generate_video_token(video_id, quality, expires_at, ip_address)
     return hmac.compare_digest(expected_token, token)
 
 def get_video_file(video, quality):
@@ -45,6 +41,13 @@ def get_video_file(video, quality):
     field_name = file_map.get(quality)
     return getattr(video, field_name, None) if field_name else None
 
+def get_ip_adress(request):
+    orwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if orwarded_for:
+        ip = orwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 def get_range(range_header, file_size):
     try:

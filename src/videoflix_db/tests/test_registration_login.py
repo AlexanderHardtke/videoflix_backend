@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework.test import APIClient, APITestCase
 from rest_framework import status
-from videoflix_db.models import EmailConfirmationToken, UserProfil, PasswordForgetToken
+from videoflix_db.models import EmailConfirmationToken, UserProfil
 from .test_data import create_user, create_incative_user
 from unittest.mock import patch
 from datetime import timedelta
