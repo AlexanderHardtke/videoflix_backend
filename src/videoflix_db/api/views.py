@@ -32,7 +32,7 @@ class RegistrationView(APIView):
 
         if not serializer.is_valid():
             return Response(
-                {'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST,
+                {'error': "Passwords don't match"}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         saved_user = serializer.save()
@@ -113,7 +113,7 @@ class ResetPasswordView(APIView):
                 timeout=5
             )
         except requests.RequestException as error:
-            return Response({'reset': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'reset': 'Check your email to reset password'}, status=status.HTTP_201_CREATED)
 
 

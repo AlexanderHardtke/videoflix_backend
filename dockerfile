@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1 <-- Bei manchen Systemen muss diese Zeile weg
 
-FROM python:3.13.3-bookworm
+FROM python:3.13.5-bookworm
 
 #später rauslöschen
 ENV PYTHONDONTWRITEBYTECODE=1
