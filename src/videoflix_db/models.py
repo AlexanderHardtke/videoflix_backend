@@ -48,6 +48,7 @@ class Video(models.Model):
     file360p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file240p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file_preview144p = models.FileField(max_length=99, blank=True, upload_to='movies/')
+    duration = models.FloatField(null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True, editable=False)
 
 

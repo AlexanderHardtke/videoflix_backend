@@ -16,6 +16,7 @@ from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailC
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .permissions import IsEmailConfirmed
 from .pagination import TypeBasedPagination
+from videoflix_db.tasks import get_video_duration
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import secrets
@@ -177,7 +178,12 @@ class FileUploadView(generics.ListCreateAPIView):
         file = self.request.FILES.get('file1080p')
         if file and not file.content_type.startswith('video/'):
             raise UnsupportedMediaType(media_type=file.content_type)
-        serializer.save()
+        video_instance = serializer.save()
+        video_path = video_instance.file1080p.path
+        duration = get_video_duration(video_path)
+        if duration is not None:
+            video_instance.duration = duration
+            video_instance.save()
     
 
 class FileEditView(generics.RetrieveUpdateDestroyAPIView):
