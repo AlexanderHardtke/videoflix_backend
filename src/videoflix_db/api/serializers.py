@@ -36,19 +36,23 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 class FileUploadSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='upload-detail')
-    big_image = serializers.FileField(required=False, allow_null=True, help_text="Optional: Big image for the video")
-    file1080p = serializers.FileField(required=True, help_text="Required: Highest Quality Video for compression")
+    big_image = serializers.FileField(
+        required=False, allow_null=True, help_text="Optional: Big image for the video")
+    file1080p = serializers.FileField(
+        required=True, help_text="Required: Highest Quality Video for compression")
 
     class Meta:
         model = Video
-        fields = ['id', 'url', 'name', 'video_type', 'description_en', 'description_de', 'big_image', 'file1080p']
+        fields = ['id', 'url', 'name', 'video_type', 'description_en',
+                  'description_de', 'big_image', 'file1080p']
 
 
 class FileEditSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Video
-        fields = ['id', 'name', 'video_type', 'description_en', 'description_de']
+        fields = ['id', 'name', 'video_type',
+                  'description_en', 'description_de']
 
 
 class VideoSerializer(serializers.ModelSerializer):
@@ -70,14 +74,20 @@ class VideoSerializer(serializers.ModelSerializer):
 
 class VideoListSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='video-detail')
+    watched_until = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
         fields = [
-            'name', 'url', 'video_type', 'image', 'big_image', 
-            'file_preview144p', 'description_en',
+            'name', 'url', 'video_type', 'image', 'big_image',
+            'file_preview144p', 'watched_until', 'description_en',
             'description_de', 'uploaded_at'
         ]
+
+    def get_watched_until(self, video):
+        user = self.context['request'].user
+        watched = WatchedVideo.objects.filter(user=user, video=video).first()
+        return watched.watched_until if watched else None
 
 
 class WatchedVideoSerializer(serializers.ModelSerializer):
