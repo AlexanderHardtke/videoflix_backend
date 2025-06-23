@@ -28,7 +28,7 @@ def create_incative_user():
 def create_video(user):
     return Video.objects.create(
         name='exampleName',
-        type='training',
+        video_type='training',
         image=SimpleUploadedFile(
             "test.jpg", b"fake image content", content_type="image/jpeg"),
         file1080p=SimpleUploadedFile(
