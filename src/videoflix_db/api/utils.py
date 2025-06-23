@@ -7,7 +7,7 @@ import hmac
 import hashlib
 
 
-def generate_video_url(obj, quality, request, valid_minutes=60):
+def generate_video_url(obj, quality, request, valid_minutes=90):
     expires_at = int((timezone.now() + timedelta(minutes=valid_minutes)).timestamp())
     ip_address = get_ip_adress(request)
     token = generate_video_token(obj.id, quality, expires_at, ip_address)

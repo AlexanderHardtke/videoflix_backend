@@ -10,7 +10,7 @@ from rest_framework import routers
 
 router = routers.SimpleRouter()
 router.register(r'videos', VideoView, basename='video')
-router.register(r'watcheds', WatchedVideoView, basename='watched')
+
 
 urlpatterns = [
     path("", include(router.urls)),
@@ -22,4 +22,5 @@ urlpatterns = [
     path('reset/', ResetPasswordView.as_view(), name='reset-detail'),
     path('change/', ChangePasswordView.as_view(), name='change-detail'),
     path('videos/<int:pk>/stream/<str:quality>/', VideoStreamView.as_view(), name='video-stream'),
+    path('watched/<int:pk>/', WatchedVideoView.as_view(), name='watched-detail'),
 ]

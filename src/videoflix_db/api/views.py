@@ -271,9 +271,7 @@ class VideoStreamView(APIView):
         return response
                 
 
-class WatchedVideoView(viewsets.GenericViewSet,
-                       mixins.UpdateModelMixin,
-                       mixins.ListModelMixin):
+class WatchedVideoView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated, IsEmailConfirmed]
 
     serializer_class = WatchedVideoSerializer
