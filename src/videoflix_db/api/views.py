@@ -3,7 +3,8 @@ from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.conf import settings
 from django.http import StreamingHttpResponse
-from rest_framework import status, viewsets, mixins
+from django.utils.translation import gettext as _
+from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
@@ -32,7 +33,7 @@ class RegistrationView(APIView):
 
         if not serializer.is_valid():
             return Response(
-                {'error': "Passwords don't match"}, status=status.HTTP_400_BAD_REQUEST,
+                {'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST,
             )
 
         saved_user = serializer.save()
@@ -56,30 +57,30 @@ class RegistrationView(APIView):
             )
         except requests.RequestException as error:
             return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'error': 'Confirm your email address'}, status=status.HTTP_201_CREATED)
+        return Response({'error': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
 
 
 class ConfirmEmailView(APIView):
     def post(self, request):
         token = request.data.get('token')
         if not token:
-            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             confirmation_token = EmailConfirmationToken.objects.get(token=token)
         except EmailConfirmationToken.DoesNotExist:
-            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         if confirmation_token.is_expired():
             confirmation_token.delete()
-            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         user = confirmation_token.user
         user.email_confirmed = True
         user.save()
         confirmation_token.delete()
 
-        return Response({'success': 'Email confirmed'}, status=status.HTTP_200_OK)
+        return Response({'success': _('Email confirmed')}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(APIView):
@@ -87,12 +88,12 @@ class ResetPasswordView(APIView):
         lang = request.data.get('lang', 'de')
         email = request.data.get('email')
         if not email:
-            return Response({'error': 'Email is missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Email is missing')}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             saved_user = UserProfil.objects.get(email=email)
         except UserProfil.DoesNotExist:
-            return Response({'reset': 'Check your email to reset password'}, status=status.HTTP_201_CREATED)
+            return Response({'sucess': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
 
         token = secrets.token_hex(32)
         PasswordForgetToken.objects.create(user=saved_user, token=token)
@@ -114,7 +115,7 @@ class ResetPasswordView(APIView):
             )
         except requests.RequestException as error:
             return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response({'reset': 'Check your email to reset password'}, status=status.HTTP_201_CREATED)
+        return Response({'sucess': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
 
 
 class ChangePasswordView(APIView):
@@ -122,27 +123,27 @@ class ChangePasswordView(APIView):
         password = request.data.get('password')
         token = request.data.get('token')
         if not token:
-            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         if not password:
-            return Response({'error': 'Password is missing'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Password is missing')}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             forget_token = PasswordForgetToken.objects.get(
                 token=token)
         except PasswordForgetToken.DoesNotExist:
-            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         if forget_token.is_expired():
             forget_token.delete()
-            return Response({'error': 'Token is not valid or expired'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         user = forget_token.user
         user.set_password(password)
         user.save()
         forget_token.delete()
 
-        return Response({'success': 'Password changed successfully'}, status=status.HTTP_200_OK)
+        return Response({'success': _('Password changed successfully')}, status=status.HTTP_200_OK)
 
 
 class LoginView(ObtainAuthToken):
@@ -151,12 +152,12 @@ class LoginView(ObtainAuthToken):
         serializer = self.serializer_class(
             data=request.data, context={'request': request})
         if not serializer.is_valid():
-            return Response({'error': 'Incorrect username or password'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Incorrect username or password')}, status=status.HTTP_400_BAD_REQUEST)
 
         user = serializer.validated_data['user']
 
         if not user.email_confirmed:
-            return Response({'error': 'Confirm your email address'},status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': _('Confirm your email address')},status=status.HTTP_401_UNAUTHORIZED)
 
         token, created = Token.objects.get_or_create(user=user)
         data = {
@@ -241,15 +242,15 @@ class VideoStreamView(APIView):
         ip_address = get_ip_adress(request)
 
         if not token or not expires:
-            return Response({'error': 'Missing or invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': _('Missing or invalid token.')}, status=status.HTTP_401_UNAUTHORIZED)
 
         if not verify_video_token(pk, quality, token, expires, ip_address):
-            return Response({'error': 'Missing or invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': _('Missing or invalid token.')}, status=status.HTTP_401_UNAUTHORIZED)
 
         video = get_object_or_404(Video, pk=pk)
         file_field = get_video_file(video, quality)
         if not file_field:
-            return Response({'error': 'Quality is not available'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': _('Quality is not available')}, status=status.HTTP_404_NOT_FOUND)
         
         file_path = file_field.path
         file_size = os.path.getsize(file_path)
