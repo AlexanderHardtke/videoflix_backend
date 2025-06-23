@@ -56,7 +56,7 @@ class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Video
-        fields = ['name', 'video_urls']
+        fields = ['id', 'name', 'video_urls']
 
     def get_video_urls(self, obj):
         request = self.context.get('request')
