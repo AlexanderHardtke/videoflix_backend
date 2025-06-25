@@ -61,8 +61,7 @@
 #             'watched_until': 0
 #         }
 #         response = self.client.post(self.url, data)
-#         self.assertEqual(response.status_code,
-#                          status.HTTP_405_METHOD_NOT_ALLOWED)
+#         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 #     def test_patch_watched_video_detail(self):
 #         response = self.client.patch(self.url, {"watched_until": 42}, format='json')
@@ -92,19 +91,16 @@
 
 #     def test_wrong_method_get_watched_video_detail(self):
 #         response = self.client.get(self.url)
-#         self.assertEqual(response.status_code,
-#                          status.HTTP_405_METHOD_NOT_ALLOWED)
+#         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 #         data = {
 #             'user': 1,
 #             'video': 1,
 #             'watched_until': 0
 #         }
 #         response = self.client.post(self.url, data)
-#         self.assertEqual(response.status_code,
-#                          status.HTTP_405_METHOD_NOT_ALLOWED)
+#         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 #         response = self.client.delete(self.url)
-#         self.assertEqual(response.status_code,
-#                          status.HTTP_405_METHOD_NOT_ALLOWED)
+#         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 #     def tearDown(self):
 #         shutil.rmtree(self._temp_media)

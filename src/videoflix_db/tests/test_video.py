@@ -1,13 +1,13 @@
-# from django.urls import reverse
-# from django.conf import settings
-# from django.core.files.uploadedfile import SimpleUploadedFile
-# from rest_framework.test import APIClient, APITestCase
-# from rest_framework import status
-# from rest_framework.authtoken.models import Token
-# from .test_data import create_video, create_user, create_admin, create_incative_user, invalid_video_pk
-# from videoflix_db.models import Video
-# import tempfile
-# import shutil
+from django.urls import reverse
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from rest_framework.test import APIClient, APITestCase
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from .test_data import create_video, create_user, create_admin, create_incative_user, invalid_video_pk
+from videoflix_db.models import Video
+import tempfile
+import shutil
 
 
 # class VideoUploadTests(APITestCase):
@@ -30,8 +30,8 @@
 #         initial_count = Video.objects.count()
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'training',
-#             'image': self.image,
+#             'video_type': 'training',
+#             'big_image': self.image,
 #             'file1080p': self.video
 #         }
 #         response = self.client.post(self.url, data)
@@ -42,8 +42,8 @@
 #     def test_fail_upload_Video(self):
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'fail',
-#             'image': 'fail',
+#             'video_type': 'fail',
+#             'big_image': 'fail',
 #             'file1080p': 'fail'
 #         }
 #         response = self.client.post(self.url, data)
@@ -53,8 +53,8 @@
 #         client = APIClient()
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'training',
-#             'image': self.image,
+#             'video_type': 'training',
+#             'big_image': self.image,
 #             'file1080p': self.video
 #         }
 #         response = client.post(self.url, data)
@@ -63,8 +63,8 @@
 #     def test_forbidden_upload_Video(self):
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'training',
-#             'image': self.image,
+#             'video_type': 'training',
+#             'big_image': self.image,
 #             'file1080p': self.video
 #         }
 #         self.token = Token.objects.create(user=self.user)
@@ -75,36 +75,33 @@
 #     def test_wrong_format_upload_Video(self):
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'training',
-#             'image': self.image,
+#             'video_type': 'training',
 #             'file1080p': self.image
 #         }
-#         response = self.client.post(self.url, data)
+#         response = self.client.post(self.url, data, format='multipart')
 #         self.assertEqual(response.status_code,
 #                          status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
 #     def test_update_upload_Video(self):
 #         video_instance = create_video(self.admin)
-#         image = SimpleUploadedFile("changed.jpg", b"fake image content", content_type="image/jpeg")
-#         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
 #         data = {
 #             'name': 'changed',
-#             'type': 'animals',
-#             'image': image,
-#             'file1080p': video
+#             'video_type': 'animals',
+#             'description_en': 'changedEN',
+#             'description_de': 'changedDE'
 #         }
 #         url = reverse('upload-detail', kwargs={'pk': video_instance.pk})
 #         response = self.client.patch(url, data)
 #         self.assertEqual(response.status_code, status.HTTP_200_OK)
 #         self.assertEqual(response.data['name'], 'changed')
-#         self.assertEqual(response.data['type'], 'animals')
-#         self.assertTrue(response.data['image'].endswith('changed.jpg'))
-#         self.assertTrue(response.data['file1080p'].endswith('changed.mp4'))
+#         self.assertEqual(response.data['video_type'], 'animals')
+#         self.assertEqual(response.data['description_en'], 'changedEN')
+#         self.assertEqual(response.data['description_de'], 'changedDE')
 
 #     def test_wrong_update_upload_Video(self):
 #         video_instance = create_video(self.admin)
 #         data = {
-#             'file1080p': 'video'
+#             'video_type': 'error'
 #         }
 #         url = reverse('upload-detail', kwargs={'pk': video_instance.pk})
 #         response = self.client.patch(url, data)
@@ -117,8 +114,8 @@
 #         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
 #         data = {
 #             'name': 'changed',
-#             'type': 'animals',
-#             'image': image,
+#             'video_type': 'animals',
+#             'big_image': image,
 #             'file1080p': video
 #         }
 #         url = reverse('upload-detail', kwargs={'pk': video_instance.pk})
@@ -131,8 +128,8 @@
 #         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
 #         data = {
 #             'name': 'changed',
-#             'type': 'animals',
-#             'image': image,
+#             'video_type': 'animals',
+#             'big_image': image,
 #             'file1080p': video
 #         }
 #         self.token = Token.objects.create(user=self.user)
@@ -147,8 +144,8 @@
 #         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
 #         data = {
 #             'name': 'changed',
-#             'type': 'animals',
-#             'image': image,
+#             'video_type': 'animals',
+#             'big_image': image,
 #             'file1080p': video
 #         }
 #         url = reverse('upload-detail', kwargs={'pk': invalid_video_pk})
@@ -244,8 +241,8 @@
 #         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'training',
-#             'image': image,
+#             'video_type': 'training',
+#             'big_image': image,
 #             'file1080p': video
 #         }
 #         response = self.client.post(self.url, data)
@@ -256,8 +253,8 @@
 #         video = SimpleUploadedFile("changed.mp4", b"fake video content", content_type="video/mp4")
 #         data = {
 #             'name': 'Test Video',
-#             'type': 'training',
-#             'image': image,
+#             'video_type': 'training',
+#             'big_image': image,
 #             'file1080p': video
 #         }
 #         response = self.client.post(self.url, data)
