@@ -3,4 +3,6 @@ from rest_framework.permissions import BasePermission
 class IsEmailConfirmed(BasePermission):
 
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and getattr(request.user, 'email_confirmed', False)
+        if not request.user or not request.user.is_authenticated:
+            return True
+        return getattr(request.user, 'email_confirmed', False)
