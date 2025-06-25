@@ -4,10 +4,9 @@ from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
 from videoflix_db.api.utils import generate_video_token, verify_video_token
-from .test_data import create_video, create_user, create_admin, create_incative_user, invalid_video_pk
+from .test_data import create_video, create_user, create_admin
 from rest_framework.test import APIClient
 from rest_framework import status
-from videoflix_db.models import Video
 import tempfile
 import shutil
 

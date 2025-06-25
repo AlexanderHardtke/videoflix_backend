@@ -16,7 +16,7 @@ def convert_and_save(cmd, video, target, field):
         setattr(video, field, relative_path)
         video.save(update_fields=[field])
     except Exception as e:
-        print(f"[CRITICAL] {field} Ausnahme: {str(e)}")
+        print(f"[CRITICAL] {field} Exception: {str(e)}")
 
 
 def get_video_duration(video_path):
@@ -28,7 +28,7 @@ def get_video_duration(video_path):
     try:
         return float(result.stdout.strip())
     except Exception as e:
-        print(f"[ERROR] Dauer konnte nicht ermittelt werden: {e}")
+        print(f"[ERROR] Duration could not be defined: {e}")
         return None
 
 
@@ -92,7 +92,7 @@ def convert_preview_144p(video_id, source):
     video = Video.objects.get(id=video_id)
     duration = get_video_duration(source)
     if not duration or duration <= 0:
-        print(f"[ERROR] Ungültige Videodauer: {duration}")
+        print(f"[ERROR] Invalid Video playtime: {duration}")
         return
     speed_factor = duration / 10.0
     target = source[:-4] + "_preview144p.mp4"
