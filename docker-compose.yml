@@ -9,7 +9,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-        restart: true
       redis:
         condition: service_healthy
     env_file:
