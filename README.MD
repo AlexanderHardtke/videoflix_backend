@@ -1,6 +1,14 @@
-# Videoflix/ Backend Project
+# Videoflix Backend
 
-## Voraussetzungen
+This project functions only in combination with my Videoflix-Frontend project which you can find here (`https://github.com/AlexanderHardtke/videoflix_frontend`)
 
-- Videoflix Frontend
-- Datenbank wird nur zu Übungszwecken mitgeschickt, kommt normalerweise auf .gitignore.
+# Installation
+
+IMPORTANT NOTE: Use the .env-template to generate an .env file in the same folder, follow the instructions in the.env-template.
+
+
+## Developement server
+
+You need to have Docker Desktop installed and run (docker compose up --build) in the console
+
+# Build on real server
