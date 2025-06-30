@@ -19,14 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
-
-if DEBUG:
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-else:
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'src', 'media')
-
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 # Quick-start development settings
@@ -35,12 +28,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY muss in der .env gesetzt sein!")
 
-
-if DEBUG:
-    MEDIA_URL = '/media/'
-else:
-    # Für Production mit HTTPS
-    MEDIA_URL = os.environ.get('BACKEND_URL') + '/media/'
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 

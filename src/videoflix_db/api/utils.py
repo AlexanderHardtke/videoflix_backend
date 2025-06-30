@@ -11,7 +11,7 @@ def generate_video_url(obj, quality, request, valid_minutes=90):
     expires_at = int((timezone.now() + timedelta(minutes=valid_minutes)).timestamp())
     ip_address = get_ip_adress(request)
     token = generate_video_token(obj.id, quality, expires_at, ip_address)
-    path = reverse('video-stream', kwargs={'pk': obj.id, 'quality': quality}, request=request)
+    path = reverse('video-stream', kwargs={'pk': obj.id, 'quality': quality})
     scheme = 'https' if request.is_secure() or request.META.get('HTTP_X_FORWARDED_PROTO') == 'https' else 'http'
     host = request.get_host()
     full_url = f"{scheme}://{host}{path}?token={token}&expires={expires_at}"
