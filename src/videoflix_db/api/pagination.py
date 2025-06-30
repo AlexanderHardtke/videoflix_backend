@@ -48,7 +48,6 @@ class TypeBasedPagination(PageNumberPagination):
     def get_next_link(self):
         if not self.has_next_page():
             return None
-        
         url = self.request.build_absolute_uri()
         return replace_query_param(url, self.page_query_param, self.page_number + 1)
 

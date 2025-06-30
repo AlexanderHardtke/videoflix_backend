@@ -12,7 +12,10 @@ def generate_video_url(obj, quality, request, valid_minutes=90):
     ip_address = get_ip_adress(request)
     token = generate_video_token(obj.id, quality, expires_at, ip_address)
     path = reverse('video-stream', kwargs={'pk': obj.id, 'quality': quality}, request=request)
-    return f"{path}?token={token}&expires={expires_at}"
+    scheme = 'https' if request.is_secure() or request.META.get('HTTP_X_FORWARDED_PROTO') == 'https' else 'http'
+    host = request.get_host()
+    full_url = f"{scheme}://{host}{path}?token={token}&expires={expires_at}"
+    return full_url
 
 def generate_video_token(video_id, quality, expires_at, ip_address):
     secret_key = settings.SECRET_KEY.encode()

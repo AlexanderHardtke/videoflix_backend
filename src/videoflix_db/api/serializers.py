@@ -1,3 +1,4 @@
+from django.urls import reverse
 from rest_framework import serializers
 from videoflix_db.models import UserProfil, Video, WatchedVideo
 from .utils import generate_video_url
@@ -73,7 +74,7 @@ class VideoSerializer(serializers.ModelSerializer):
 
 
 class VideoListSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='video-detail')
+    url = serializers.SerializerMethodField()
     watched_until = serializers.SerializerMethodField()
 
     class Meta:
@@ -84,6 +85,13 @@ class VideoListSerializer(serializers.ModelSerializer):
             'description_de', 'uploaded_at'
         ]
 
+    def get_url(self, obj):
+        request = self.context.get('request')
+        path = reverse('video-detail', kwargs={'pk': obj.pk})
+        scheme = 'https' if request.is_secure() or request.META.get('HTTP_X_FORWARDED_PROTO') == 'https' else 'http'
+        host = request.get_host()
+        return f"{scheme}://{host}{path}"
+    
     def get_watched_until(self, video):
         user = self.context['request'].user
         watched = WatchedVideo.objects.filter(user=user, video=video).first()
