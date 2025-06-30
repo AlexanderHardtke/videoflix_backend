@@ -75,7 +75,8 @@ CORS_ALLOWED_ORIGINS = [
     if url
 ]
 
-CSRF_TRUSTED_ORIGINS = [os.environ.get('BACKEND_URL'), os.environ.get('FRONTEND_URL')]
+CSRF_TRUSTED_ORIGINS = [os.environ.get(
+    'BACKEND_URL'), os.environ.get('FRONTEND_URL')]
 
 CORS_ALLOW_METHODS = ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"]
 

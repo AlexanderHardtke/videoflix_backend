@@ -50,3 +50,6 @@ Baue und starte die Container im Hintergrund mit `docker-compose up --build -d`
 Um Videos hochzuladen, rufe auf: `BACKEND_URL/api/upload`
 Melde dich mit deinem Superuser-Account an, mit diesem kannst du Videos direkt hochladen.
 Alternativ kannst du auch das Django-Admin-Panel verwenden unter: `BACKEND_URL/admin`
+
+
+"gunicorn videoflix_backend.wsgi:application --bind 0.0.0.0:8000 --workers 4"
