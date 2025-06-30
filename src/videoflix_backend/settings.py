@@ -231,5 +231,5 @@ CACHES = {
     }
 }
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL')
+FRONTEND_URL = os.environ.get('FRONTEND_URL') + '/'
 MAIL_SERVER = os.environ.get('MAIL_SERVER')
