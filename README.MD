@@ -8,7 +8,7 @@ IMPORTANT NOTE: Use the .env-template to generate an .env file in the same folde
 
 ## Developement server
 
-Change line 21 in docker-compose.yml to `python manage.py runserver 0.0.0.0:8000`
+Change line 22 in docker-compose.yml to `python manage.py runserver 0.0.0.0:8000`
 Go the the src folder and activate `"env/scripts/activate"`, after this you need to have Docker Desktop installed and run `docker compose up --build` in the console.
 
 # Build on real server
@@ -33,7 +33,7 @@ WICHTIGER HINWEIS: Benutze die .env-template, um deine eigene .env-Datei zu erst
 
 ## Entwicklungsserver
 
-Ändere Zeile 21 in der docker-compose.yml auf: `python manage.py runserver 0.0.0.0:8000`
+Ändere Zeile 22 in der docker-compose.yml auf: `python manage.py runserver 0.0.0.0:8000`
 Wechsle in den src-Ordner und aktiviere dein virtuelles Environment: `"env/scripts/activate"`
 Stelle sicher, dass Docker Desktop installiert ist.
 Starte den Container mit `docker-compose up --build -d`
