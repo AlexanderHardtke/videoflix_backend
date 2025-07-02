@@ -12,19 +12,22 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from videoflix_db.models import Video, WatchedVideo, UserProfil
+from videoflix_db.models import Video, WatchedVideo
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import os
+from django.contrib.auth import get_user_model
+from authemail import wrapper
+from authemail.views import Signup, SignupVerify, Login, PasswordReset, PasswordResetVerify
 
 
 CACHETTL = getattr(settings, 'CACHETTL', DEFAULT_TIMEOUT)
+User = get_user_model()
 
 
 class RegistrationView(APIView):
-
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
 
@@ -32,18 +35,29 @@ class RegistrationView(APIView):
             return Response(
                 {'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST,
             )
-        serializer.save()
         lang = request.data.get('lang', 'de')
-        return Response({'error': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
+        data = serializer.validated_data.copy()
+        data.setdefault('username', data.get('email'))
+        data.setdefault('first_name', '')
+        data.setdefault('last_name', '')
+        try:
+            response = wrapper.Authemail().signup(**data)
+            return Response({'success': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
+        except Exception as err:
+            return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ConfirmEmailView(APIView):
     def post(self, request):
+        lang = request.data.get('lang', 'de')
         token = request.data.get('token')
         if not token:
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({'success': _('Email confirmed')}, status=status.HTTP_200_OK)
+        try:
+            wrapper.Authemail().signup_verify(code=token)
+            return Response({'success': _('Email confirmed')}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ResetPasswordView(APIView):
@@ -52,13 +66,11 @@ class ResetPasswordView(APIView):
         email = request.data.get('email')
         if not email:
             return Response({'error': _('Email is missing')}, status=status.HTTP_400_BAD_REQUEST)
-
         try:
-            saved_user = UserProfil.objects.get(email=email)
-        except UserProfil.DoesNotExist:
-            return Response({'sucess': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
-
-        return Response({'sucess': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
+            wrapper.Authemail().password_reset(email=email)
+            return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
 
 
 class ChangePasswordView(APIView):
@@ -84,13 +96,13 @@ class LoginView(ObtainAuthToken):
 
         user = serializer.validated_data['user']
 
-        if not user.email_confirmed:
+        if not user.is_verified:
             return Response({'error': _('Confirm your email address')},status=status.HTTP_401_UNAUTHORIZED)
 
         token, created = Token.objects.get_or_create(user=user)
         data = {
             'token': token.key,
-            'username': user.username,
+            'email': user.email,
             'user_id': user.pk,
         }
         return Response(data, status=status.HTTP_201_CREATED)
