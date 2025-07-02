@@ -1,6 +1,4 @@
-from django.contrib import admin
 from django.urls import path, include
-from rest_framework.authtoken.views import obtain_auth_token
 from .views import (
     RegistrationView, FileUploadView, LoginView, 
     VideoView, WatchedVideoView, ConfirmEmailView, 
