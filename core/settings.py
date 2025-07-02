@@ -203,4 +203,3 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', True)
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', False)
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', default="http://localhost:4200") + '/'
-MAIL_SERVER = os.environ.get('MAIL_SERVER', default="info@alexander-hardtke.com")
