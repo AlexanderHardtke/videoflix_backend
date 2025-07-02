@@ -236,5 +236,4 @@ CACHES = {
     }
 }
 
-FRONTEND_URL = os.environ.get('FRONTEND_URL') + '/'
-# MAIL_SERVER = os.environ.get('MAIL_SERVER')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', default="http://localhost:4200") + '/'
