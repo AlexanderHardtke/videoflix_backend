@@ -182,6 +182,7 @@ class FileUploadView(generics.ListCreateAPIView):
         video_path = video_instance.file1080p.path
         duration = get_video_duration(video_path)
         if duration is not None:
+            print(duration)
             video_instance.duration = duration
             video_instance.save()
     

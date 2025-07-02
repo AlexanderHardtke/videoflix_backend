@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.core.files import File
 from django.utils import timezone
 from django_rq import job
 from videoflix_db.models import PasswordForgetToken, EmailConfirmationToken
@@ -12,9 +12,10 @@ def convert_and_save(cmd, video, target, field):
         if result.returncode != 0:
             print(f"[ERROR] {field} FFmpeg-Fehler:\n{result.stderr}")
             return
-        relative_path = target.replace(settings.MEDIA_ROOT + '/', '')
-        setattr(video, field, relative_path)
-        video.save(update_fields=[field])
+        with open(target, 'rb') as f:
+            django_file = File(f)
+            filename = target.split('/')[-1]
+            getattr(video, field).save(filename, django_file, save=True)
     except Exception as e:
         print(f"[CRITICAL] {field} Exception: {str(e)}")
 

@@ -2,7 +2,7 @@ from collections import defaultdict
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.utils.urls import replace_query_param
-import os
+from videoflix_db.models import Video
 
 
 class TypeBasedPagination(PageNumberPagination):
@@ -13,7 +13,7 @@ class TypeBasedPagination(PageNumberPagination):
 
     def __init__(self):
         super().__init__()
-        self.video_types = [x.strip() for x in os.environ.get('VIDEO_TYPES', '').split(',') if x.strip()]
+        self.video_types = [choice[0] for choice in Video.VIDEO_TYPE_CHOICES]
 
     def paginate_queryset(self, queryset, request, view=None):
         self.request = request
