@@ -10,7 +10,7 @@ class VideoflixDbConfig(AppConfig):
     def ready(self):
         from .tasks import clear_token
         from . import signals
-        scheduler = get_scheduler('queue_token')
+        scheduler = get_scheduler('default')
 
         if not any(job.func_name == 'tasks.clear_token' for job in scheduler.get_jobs()):
             scheduler.schedule(
@@ -18,5 +18,5 @@ class VideoflixDbConfig(AppConfig):
                 func=clear_token,
                 interval=12 * 60 * 60,
                 repeat=None,
-                queue_name='queue_token'
+                queue_name='default'
             )

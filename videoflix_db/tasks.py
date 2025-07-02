@@ -60,7 +60,7 @@ def create_small_img_from_img(source, video):
     convert_and_save(cmd, video, target, 'image')
 
 
-@job('queue_720p')
+@job('default')
 def convert_720p(video_id, source):
     video = Video.objects.get(id=video_id)
     target = source[:-4] + '_720p.mp4'
@@ -69,7 +69,7 @@ def convert_720p(video_id, source):
     convert_and_save(cmd, video, target, 'file720p')
 
 
-@job('queue_360p')
+@job('default')
 def convert_360p(video_id, source):
     video = Video.objects.get(id=video_id)
     target = source[:-4] + '_360p.mp4'
@@ -78,7 +78,7 @@ def convert_360p(video_id, source):
     convert_and_save(cmd, video, target, 'file360p')
 
 
-@job('queue_240p')
+@job('default')
 def convert_240p(video_id, source):
     video = Video.objects.get(id=video_id)
     target = source[:-4] + '_240p.mp4'
@@ -87,7 +87,7 @@ def convert_240p(video_id, source):
     convert_and_save(cmd, video, target, 'file240p')
 
 
-@job('queue_preview144p')
+@job('default')
 def convert_preview_144p(video_id, source):
     video = Video.objects.get(id=video_id)
     duration = get_video_duration(source)
@@ -104,7 +104,7 @@ def convert_preview_144p(video_id, source):
     convert_and_save(cmd, video, target, 'file_preview144p')
 
 
-@job('queue_image')
+@job('default')
 def convert_preview_images(video_id, source):
     video = Video.objects.get(id=video_id)
     if not video.big_image:
@@ -114,7 +114,7 @@ def convert_preview_images(video_id, source):
         create_small_img_from_img(source, video)
 
 
-@job('queue_token', result_ttl=0)
+@job('default', result_ttl=0)
 def clear_token():
     now = timezone.now()
     expired_pw_tokens = PasswordForgetToken.objects.filter(

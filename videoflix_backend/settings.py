@@ -173,53 +173,6 @@ RQ_QUEUES = {
     },
 }
 
-# REDIS_PORT = os.environ.get('RQ_PORT', '6379')
-# RQ_QUEUES = {
-#     'default': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 360,
-#         'DEFAULT_RESULT_TTL': 800,
-#     },
-#     'queue_720p': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 600,
-#     },
-#     'queue_360p': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 600,
-#     },
-#     'queue_240p': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 600,
-#     },
-#     'queue_preview144p': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 300,
-#     },
-#     'queue_image': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 300,
-#     },
-#     'queue_token': {
-#         'HOST': 'redis',
-#         'PORT': REDIS_PORT,
-#         'DB': 0,
-#         'DEFAULT_TIMEOUT': 300,
-#     },
-# }
-
 # If you need custom exception handlers
 RQ_EXCEPTION_HANDLERS = ['videoflix_backend.handlers.my_rq_exception_handler']
 
