@@ -80,11 +80,11 @@ class UserLoginTests(APITestCase):
 
     def test_login_user(self):
         data = {
-            'username': 'example@mail.de',
+            'email': 'example@mail.de',
             'password': 'examplePassword'
         }
         response = self.client.post(self.url, data, format='json')
-        self.assertEqual(response.data['username'], data['username'])
+        self.assertEqual(response.data['email'], data['email'])
         self.assertIsInstance(response.data['token'], str)
         self.assertIsInstance(response.data['user_id'], int)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

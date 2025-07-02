@@ -1,7 +1,6 @@
 from django.core.files import File
 from django.utils import timezone
 from django_rq import job
-from videoflix_db.models import PasswordForgetToken, EmailConfirmationToken
 from .models import Video
 import subprocess
 
@@ -115,14 +114,3 @@ def convert_preview_images(video_id, source):
         create_small_img_from_video(source, video)
     else:
         create_small_img_from_img(source, video)
-
-
-@job('default', result_ttl=0)
-def clear_token():
-    now = timezone.now()
-    expired_pw_tokens = PasswordForgetToken.objects.filter(
-        created_at__lt=now - timezone.timedelta(days=1))
-    expired_pw_tokens.delete()
-    expired_email_tokens = EmailConfirmationToken.objects.filter(
-        created_at__lt=now - timezone.timedelta(days=1))
-    expired_email_tokens.delete()

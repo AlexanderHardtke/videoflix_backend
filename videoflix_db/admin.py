@@ -1,30 +1,26 @@
 from django.contrib import admin
-from .models import UserProfil, Video, WatchedVideo
+from django.contrib.auth import get_user_model
+from authemail.admin import EmailUserAdmin
+from .models import Video, WatchedVideo
 from .forms import ProfilUserCreationForm
-from django.contrib.auth.admin import UserAdmin
 
+class MyUserAdmin(EmailUserAdmin):
+    add_form = ProfilUserCreationForm
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff',
+                                    'is_superuser', 'is_verified',
+                                    'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+        ('Custom info', {'fields': ('sound_volume',)}),
+    )
 
-admin.site.register(Video)
+admin.site.unregister(get_user_model())
+admin.site.register(get_user_model(), MyUserAdmin)
+
 class VideoAdmin(admin.ModelAdmin):
     readonly_fields = ['file720p', 'file360p', 'file240p', 'file_preview144p']
 
-
+admin.site.register(Video, VideoAdmin)
 admin.site.register(WatchedVideo)
-
-
-@admin.register(UserProfil)
-class UserProfilAdmin(admin.ModelAdmin):
-    add_form = ProfilUserCreationForm
-    fieldsets = (
-        (
-            'Individuelle Daten',
-            {
-                'fields': (
-                    'email_confirmed',
-                    'preferred_size',
-                    'sound_volume'
-                )
-            }
-        ),
-        *UserAdmin.fieldsets,
-    )

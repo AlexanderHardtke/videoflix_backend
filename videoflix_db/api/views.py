@@ -12,15 +12,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from videoflix_db.models import Video, WatchedVideo, PasswordForgetToken, EmailConfirmationToken, UserProfil
+from videoflix_db.models import Video, WatchedVideo, UserProfil
 from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
-from .permissions import IsEmailConfirmed
 from .pagination import TypeBasedPagination
-from videoflix_db.tasks import get_video_duration
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
-import secrets
-import requests
 import os
 
 
@@ -36,28 +32,8 @@ class RegistrationView(APIView):
             return Response(
                 {'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST,
             )
-
-        saved_user = serializer.save()
-        token = secrets.token_hex(32)
-        EmailConfirmationToken.objects.create(user=saved_user, token=token)
+        serializer.save()
         lang = request.data.get('lang', 'de')
-        url = settings.FRONTEND_URL + 'confirm-email-link-de.php' if lang == 'de' else \
-            settings.FRONTEND_URL + 'confirm-email-link-en.php'
-        try:
-            requests.post(
-                url,
-                json={
-                    'email': saved_user.email,
-                    'token': token,
-                    'frontend_url': settings.FRONTEND_URL + 'signUp/',
-                    'logo': settings.FRONTEND_URL + 'Logo.png',
-                    'mail_server': settings.MAIL_SERVER,
-                },
-                headers={'Content-Type': 'application/json'},
-                timeout=5
-            )
-        except requests.RequestException as error:
-            return Response({'error': str(error)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'error': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
 
 
@@ -66,20 +42,6 @@ class ConfirmEmailView(APIView):
         token = request.data.get('token')
         if not token:
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            confirmation_token = EmailConfirmationToken.objects.get(token=token)
-        except EmailConfirmationToken.DoesNotExist:
-            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        if confirmation_token.is_expired():
-            confirmation_token.delete()
-            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = confirmation_token.user
-        user.email_confirmed = True
-        user.save()
-        confirmation_token.delete()
 
         return Response({'success': _('Email confirmed')}, status=status.HTTP_200_OK)
 
@@ -96,26 +58,6 @@ class ResetPasswordView(APIView):
         except UserProfil.DoesNotExist:
             return Response({'sucess': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
 
-        token = secrets.token_hex(32)
-        PasswordForgetToken.objects.create(user=saved_user, token=token)
-        url = settings.FRONTEND_URL + 'send-reset-link-de.php' if lang == 'de' else \
-            settings.FRONTEND_URL + 'send-reset-link-en.php'
-
-        try:
-            requests.post(
-                url,
-                json={
-                    'email': saved_user.email,
-                    'token': token,
-                    'frontend_url': settings.FRONTEND_URL + 'reset/',
-                    'logo': settings.FRONTEND_URL + 'Logo.png',
-                    'mail_server': settings.MAIL_SERVER,
-                },
-                headers={'Content-Type': 'application/json'},
-                timeout=5
-            )
-        except requests.RequestException as error:
-            return Response({'error': error}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({'sucess': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
 
 
@@ -128,22 +70,7 @@ class ChangePasswordView(APIView):
 
         if not password:
             return Response({'error': _('Password is missing')}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            forget_token = PasswordForgetToken.objects.get(
-                token=token)
-        except PasswordForgetToken.DoesNotExist:
-            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        if forget_token.is_expired():
-            forget_token.delete()
-            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = forget_token.user
-        user.set_password(password)
-        user.save()
-        forget_token.delete()
-
+        
         return Response({'success': _('Password changed successfully')}, status=status.HTTP_200_OK)
 
 
@@ -199,7 +126,7 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated, IsEmailConfirmed]
+    permission_classes = [IsAuthenticated]
     queryset = Video.objects.all().order_by('video_type', 'uploaded_at')
 
     def get_serializer_class(self):
@@ -274,7 +201,7 @@ class VideoStreamView(APIView):
                 
 
 class WatchedVideoView(generics.UpdateAPIView):
-    permission_classes = [IsAuthenticated, IsEmailConfirmed]
+    permission_classes = [IsAuthenticated]
 
     serializer_class = WatchedVideoSerializer
 
