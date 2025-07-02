@@ -1,9 +1,7 @@
 from django.utils import timezone
 from django.db import models
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 import secrets
-import os
 
 
 class UserProfil(AbstractUser):
@@ -36,11 +34,14 @@ class PasswordForgetToken(models.Model):
 
 
 class Video(models.Model):
-    video_types = [(x, x.capitalize()) for x in os.environ.get('VIDEO_TYPES', '').split(',') if x]
+    VIDEO_TYPE_CHOICES = [
+    ('animals', 'Animals'), ('nature', 'Nature'),
+    ('training', 'Training'), ('tutorials', 'Tutorials'),
+]
     name = models.CharField(max_length=50, default='')
     description_en = models.TextField(max_length=1000, default='')
     description_de = models.TextField(max_length=1000, default='')
-    video_type = models.CharField(max_length=50, choices=video_types, default='movies')
+    video_type = models.CharField(max_length=50, choices=VIDEO_TYPE_CHOICES, default='movies')
     big_image = models.FileField(max_length=99, blank=True,null=True, upload_to='movies/')
     image = models.FileField(max_length=99, blank=True,null=True, upload_to='movies/')
     file1080p = models.FileField(max_length=99, blank=True, upload_to='movies/')

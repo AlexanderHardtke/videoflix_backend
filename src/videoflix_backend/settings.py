@@ -10,29 +10,31 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Quick-start development settings
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY muss in der .env gesetzt sein!")
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+DEBUG = os.getenv('DEBUG', default=True)
 
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", default="localhost").split(",")
 
 # Application definition
 
@@ -55,6 +57,7 @@ AUTH_USER_MODEL = 'videoflix_db.UserProfil'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -65,18 +68,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    url.strip()
-    for url in [
-        os.environ.get('FRONTEND_URL'),
-        os.environ.get('BACKEND_URL'),
-        "http://localhost:4200",
-    ]
-    if url
-]
-
-CSRF_TRUSTED_ORIGINS = [os.environ.get(
-    'BACKEND_URL'), os.environ.get('FRONTEND_URL')]
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://localhost:4200").split(",")
 
 CORS_ALLOW_METHODS = ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"]
 
@@ -104,13 +96,13 @@ WSGI_APPLICATION = 'videoflix_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'db'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ.get("DB_NAME", default="videoflix_db"),
+        "USER": os.environ.get("DB_USER", default="videoflix_user"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", default="supersecretpassword"),
+        "HOST": os.environ.get("DB_HOST", default="db"),
+        "PORT": os.environ.get("DB_PORT", default=5432)
     }
 }
 
@@ -157,7 +149,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / "static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -171,52 +163,62 @@ REST_FRAMEWORK = {
     ],
 }
 
-REDIS_PORT = os.environ.get('RQ_PORT', '6379')
 RQ_QUEUES = {
     'default': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 360,
-        'DEFAULT_RESULT_TTL': 800,
-    },
-    'queue_720p': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 600,
-    },
-    'queue_360p': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 600,
-    },
-    'queue_240p': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 600,
-    },
-    'queue_preview144p': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
-    },
-    'queue_image': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
-    },
-    'queue_token': {
-        'HOST': 'redis',
-        'PORT': REDIS_PORT,
-        'DB': 0,
-        'DEFAULT_TIMEOUT': 300,
+        'HOST': os.environ.get("REDIS_HOST", default="redis"),
+        'PORT': os.environ.get("REDIS_PORT", default=6379),
+        'DB': os.environ.get("REDIS_DB", default=0),
+        'DEFAULT_TIMEOUT': 900,
+        'REDIS_CLIENT_KWARGS': {},
     },
 }
+
+# REDIS_PORT = os.environ.get('RQ_PORT', '6379')
+# RQ_QUEUES = {
+#     'default': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 360,
+#         'DEFAULT_RESULT_TTL': 800,
+#     },
+#     'queue_720p': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 600,
+#     },
+#     'queue_360p': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 600,
+#     },
+#     'queue_240p': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 600,
+#     },
+#     'queue_preview144p': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 300,
+#     },
+#     'queue_image': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 300,
+#     },
+#     'queue_token': {
+#         'HOST': 'redis',
+#         'PORT': REDIS_PORT,
+#         'DB': 0,
+#         'DEFAULT_TIMEOUT': 300,
+#     },
+# }
 
 # If you need custom exception handlers
 RQ_EXCEPTION_HANDLERS = ['videoflix_backend.handlers.my_rq_exception_handler']
@@ -226,7 +228,7 @@ CACHETTL = 60 * 15
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://videoflix_redis:{REDIS_PORT}/1",
+        "LOCATION": os.environ.get("REDIS_LOCATION", default="redis://redis:6379/1"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -235,4 +237,4 @@ CACHES = {
 }
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL') + '/'
-MAIL_SERVER = os.environ.get('MAIL_SERVER')
+# MAIL_SERVER = os.environ.get('MAIL_SERVER')
