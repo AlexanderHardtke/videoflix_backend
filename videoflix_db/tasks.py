@@ -95,6 +95,8 @@ def convert_preview_144p(video_id, source):
     if not duration or duration <= 0:
         print(f"[ERROR] Invalid Video playtime: {duration}")
         return
+    video.duration = duration
+    video.save()
     speed_factor = duration / 10.0
     target = source[:-4] + "_preview144p.mp4"
     cmd = [

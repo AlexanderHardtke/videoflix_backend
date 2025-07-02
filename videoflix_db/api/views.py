@@ -178,13 +178,7 @@ class FileUploadView(generics.ListCreateAPIView):
         file = self.request.FILES.get('file1080p')
         if file and not file.content_type.startswith('video/'):
             raise UnsupportedMediaType(media_type=file.content_type)
-        video_instance = serializer.save()
-        video_path = video_instance.file1080p.path
-        duration = get_video_duration(video_path)
-        if duration is not None:
-            print(duration)
-            video_instance.duration = duration
-            video_instance.save()
+        serializer.save()
     
 
 class FileEditView(generics.RetrieveUpdateDestroyAPIView):
