@@ -192,3 +192,4 @@ CACHES = {
 }
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', default="http://localhost:4200") + '/'
+MAIL_SERVER = os.environ.get('MAIL_SERVER', default="info@alexander-hardtke.com")
