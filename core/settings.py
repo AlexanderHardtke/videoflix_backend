@@ -72,7 +72,7 @@ CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", default="http://lo
 
 CORS_ALLOW_METHODS = ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"]
 
-ROOT_URLCONF = 'videoflix_backend.urls'
+ROOT_URLCONF = 'core.urls'
 
 TEMPLATES = [
     {
@@ -89,7 +89,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'videoflix_backend.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database
@@ -174,7 +174,7 @@ RQ_QUEUES = {
 }
 
 # If you need custom exception handlers
-RQ_EXCEPTION_HANDLERS = ['videoflix_backend.handlers.my_rq_exception_handler']
+RQ_EXCEPTION_HANDLERS = ['core.handlers.my_rq_exception_handler']
 
 CACHETTL = 60 * 15
 
