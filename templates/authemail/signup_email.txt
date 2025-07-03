@@ -4,7 +4,7 @@ Hallo,
 
 vielen Dank für deine Registrierung. Bitte besuche den folgenden Link, um deine E-Mail-Adresse zu verifizieren:
 
-{{ site_url }}/signUp?code={{ code }}
+{{ frontend_url }}/signUp/{{ code }}
 
 Alternativ kannst du diesen Code verwenden: {{ code }}
 
