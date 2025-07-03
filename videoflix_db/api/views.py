@@ -8,104 +8,92 @@ from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from videoflix_db.models import Video, WatchedVideo
-from .serializers import RegistrationSerializer, FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
+from videoflix_db.models import Video, WatchedVideo, UserProfil
+from .serializers import FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import os
-from django.contrib.auth import get_user_model
-from authemail import wrapper
-from authemail.views import Signup, SignupVerify, Login, PasswordReset, PasswordResetVerify
-
-
-CACHETTL = getattr(settings, 'CACHETTL', DEFAULT_TIMEOUT)
-User = get_user_model()
+from django.utils import translation
+from authemail.views import SignupVerify, Login, PasswordReset, PasswordResetVerify
+from authemail.views import Signup as AuthemailSignup
+from authemail.serializers import SignupSerializer, LoginSerializer, PasswordResetSerializer
 
 
 class RegistrationView(APIView):
     def post(self, request):
-        serializer = RegistrationSerializer(data=request.data)
-
+        serializer = SignupSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response(
-                {'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST,
-            )
-        lang = request.data.get('lang', 'de')
-        data = serializer.validated_data.copy()
-        data.setdefault('username', data.get('email'))
-        data.setdefault('first_name', '')
-        data.setdefault('last_name', '')
-        try:
-            response = wrapper.Authemail().signup(**data)
+            if 'password' in serializer.errors or 'repeated_password' in serializer.errors:
+                return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
+            if 'email' in serializer.errors:
+                return Response({'error': _("Invalid email address")}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        view = AuthemailSignup()
+        response = view.post(request)
+        if response.status_code == status.HTTP_201_CREATED:
             return Response({'success': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
-        except Exception as err:
-            return Response({'error': str(err)}, status=status.HTTP_400_BAD_REQUEST)
-
+        else:
+            return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
+        
 
 class ConfirmEmailView(APIView):
     def post(self, request):
-        lang = request.data.get('lang', 'de')
-        token = request.data.get('token')
-        if not token:
+        if not request.data.get('code'):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            wrapper.Authemail().signup_verify(code=token)
+        view = SignupVerify()
+        response = view.post(request)
+        if response.status_code == status.HTTP_200_OK:
             return Response({'success': _('Email confirmed')}, status=status.HTTP_200_OK)
-        except Exception as e:
+        else:
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ResetPasswordView(APIView):
     def post(self, request):
-        lang = request.data.get('lang', 'de')
-        email = request.data.get('email')
-        if not email:
-            return Response({'error': _('Email is missing')}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            wrapper.Authemail().password_reset(email=email)
+        serializer = PasswordResetSerializer(data=request.data)
+        if not serializer.is_valid():
             return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
-        except Exception as e:
+        view = PasswordReset()
+        response = view.post(request)
+        if response.status_code == status.HTTP_201_CREATED:
             return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ChangePasswordView(APIView):
     def post(self, request):
-        password = request.data.get('password')
-        token = request.data.get('token')
-        if not token:
+        if not request.data.get('code'):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not password:
+        if not request.data.get('password'):
             return Response({'error': _('Password is missing')}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response({'success': _('Password changed successfully')}, status=status.HTTP_200_OK)
+        view = PasswordResetVerify()
+        response = view.post(request)
+        if response.status_code == status.HTTP_200_OK:
+            return Response({'success': _('Password changed successfully')}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LoginView(ObtainAuthToken):
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data, context={'request': request})
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'error': _('Incorrect username or password')}, status=status.HTTP_400_BAD_REQUEST)
-
-        user = serializer.validated_data['user']
-
-        if not user.is_verified:
-            return Response({'error': _('Confirm your email address')},status=status.HTTP_401_UNAUTHORIZED)
-
-        token, created = Token.objects.get_or_create(user=user)
-        data = {
-            'token': token.key,
-            'email': user.email,
-            'user_id': user.pk,
-        }
-        return Response(data, status=status.HTTP_201_CREATED)
+        email = serializer.validated_data['email']
+        try:
+            user = UserProfil.objects.get(email=email)
+        except UserProfil.DoesNotExist:
+            return Response({'error': _('Incorrect username or password')}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.email_confirmed:
+            return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
+        view = Login()
+        response = view.post(request)
+        return Response(response.data, status=response.status_code)
 
 
 class FileUploadView(generics.ListCreateAPIView):
@@ -153,6 +141,7 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
         return paginator.get_paginated_response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
+        CACHETTL = getattr(settings, 'CACHETTL', DEFAULT_TIMEOUT)
         video_id = kwargs['pk']
         cache_key = f'video_meta:{video_id}'
 
