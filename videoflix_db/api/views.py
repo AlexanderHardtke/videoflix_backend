@@ -17,7 +17,6 @@ from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import os
-from django.utils import translation
 from authemail.views import SignupVerify, Login, PasswordReset, PasswordResetVerify
 from authemail.views import Signup as AuthemailSignup
 from authemail.serializers import SignupSerializer, LoginSerializer, PasswordResetSerializer
@@ -26,12 +25,18 @@ from authemail.serializers import SignupSerializer, LoginSerializer, PasswordRes
 class RegistrationView(APIView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
+
         if not serializer.is_valid():
             if 'password' in serializer.errors or 'repeated_password' in serializer.errors:
                 return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
             if 'email' in serializer.errors:
                 return Response({'error': _("Invalid email address")}, status=status.HTTP_400_BAD_REQUEST)
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+        email = serializer.validated_data['email']
+        if UserProfil.objects.filter(email=email).exists():
+            return Response({'success': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
+        
         view = AuthemailSignup()
         response = view.post(request)
         if response.status_code == status.HTTP_201_CREATED:

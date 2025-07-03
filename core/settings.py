@@ -45,13 +45,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'videoflix_db.apps.VideoflixDbConfig',
+    'authemail',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
-    'authemail',
     'django_filters',
-    'django_rq',
-    'videoflix_db.apps.VideoflixDbConfig'
+    'django_rq'  
 ]
 
 AUTH_USER_MODEL = 'videoflix_db.UserProfil'
@@ -80,10 +80,11 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates',],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -128,6 +129,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHEMAIL_CONFIRMATION_EXPIRATION_DAYS = 1
+AUTHEMAIL_PASSWORD_RESET_EXPIRATION_DAYS = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -203,3 +206,13 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 
 FRONTEND_URL = os.environ.get('FRONTEND_URL', default="http://localhost:4200") + '/'
+
+AUTHEMAIL_SETTINGS = {
+    'SITE_NAME': 'Videoflix',
+    'SITE_URL': FRONTEND_URL,
+    'FROM_EMAIL': EMAIL_FROM,
+    'EMAIL_VERIFY_URL': FRONTEND_URL + 'signUp',
+    'EMAIL_RESET_URL': FRONTEND_URL + 'forgot',
+}
+
+AUTHEMAIL_SITE_URL = FRONTEND_URL

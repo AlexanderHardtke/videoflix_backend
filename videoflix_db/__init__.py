@@ -1,0 +1,1 @@
+default_app_config = "videoflix_db.apps.VideoflixDbConfig"

@@ -1,0 +1,12 @@
+Willkommen bei Videoflix!
+
+Hallo,
+
+vielen Dank für deine Registrierung. Bitte besuche den folgenden Link, um deine E-Mail-Adresse zu verifizieren:
+
+{{ site_url }}/signUp?code={{ code }}
+
+Alternativ kannst du diesen Code verwenden: {{ code }}
+
+Viele Grüße,
+Das Videoflix-Team

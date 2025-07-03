@@ -5,7 +5,6 @@ from .views import (
     ResetPasswordView, ChangePasswordView, FileEditView,
     VideoStreamView)
 from rest_framework import routers
-from authemail.views import Signup, SignupVerify, Login, PasswordReset, PasswordResetVerify
 
 router = routers.SimpleRouter()
 router.register(r'videos', VideoView, basename='video')
