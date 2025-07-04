@@ -91,8 +91,11 @@ class ChangePasswordView(APIView):
     def post(self, request):
         if not request.data.get('code'):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-        if not request.data.get('password'):
+        if not request.data.get('password') or not request.data.get('repeatPw'):
             return Response({'error': _('Password is missing')}, status=status.HTTP_400_BAD_REQUEST)
+        if request.data.get('password') != request.data.get('repeatPw'):
+                return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
+                                
         view = PasswordResetVerified()
         response = view.post(request)
         if response.status_code == status.HTTP_200_OK:
