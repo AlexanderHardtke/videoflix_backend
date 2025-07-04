@@ -1,7 +1,20 @@
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from videoflix_db.models import Video, WatchedVideo
 from .utils import generate_video_url
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username_field = 'email'
+
+    def validate(self, attrs):
+        try:
+            data = super().validate(attrs)
+        except serializers.ValidationError:
+            raise serializers.ValidationError({'error': _('Incorrect email or password')})
+        return data
 
 
 class FileUploadSerializer(serializers.ModelSerializer):

@@ -8,22 +8,21 @@ from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from videoflix_db.models import Video, WatchedVideo, UserProfil
 from .serializers import (
     FileUploadSerializer, VideoSerializer, WatchedVideoSerializer,
-    VideoListSerializer, FileEditSerializer
+    VideoListSerializer, FileEditSerializer, MyTokenObtainPairSerializer
     )
 from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import os
-from authemail.views import SignupVerify, Login, PasswordReset, PasswordResetVerify, PasswordResetVerified
+from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
 from authemail.views import Signup as AuthemailSignup
-from authemail.serializers import SignupSerializer, LoginSerializer, PasswordResetSerializer
+from authemail.serializers import SignupSerializer, PasswordResetSerializer
 
 
 class RegistrationView(APIView):
@@ -76,6 +75,7 @@ class ResetPasswordView(APIView):
         else:
             return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class ChangePassVerifyView(APIView):
     def get(self, request: HttpRequest):
         code = request.GET.get('code')
@@ -108,8 +108,21 @@ class ChangePasswordView(APIView):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CookieTokenObtainPairView(TokenObtainPairView):
+class LoginView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+    
     def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        try:
+            user = UserProfil.objects.get(email=email)
+        except UserProfil.DoesNotExist:
+            return Response({'error': _('Incorrect email or password')}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.is_active:
+            return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
+        
         response = super().post(request, *args, **kwargs)
         refresh = response.data.get('refresh')
         access = response.data.get('access')
@@ -167,28 +180,6 @@ class  CookieTokenRefreshView(TokenRefreshView):
             samesite='Lax'
         )
         return response
-
-
-class LoginView(ObtainAuthToken):
-    
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({'error': _('Incorrect email or password')}, status=status.HTTP_400_BAD_REQUEST)
-        email = serializer.validated_data['email']
-        try:
-            user = UserProfil.objects.get(email=email)
-        except UserProfil.DoesNotExist:
-            return Response({'error': _('Incorrect email or password')}, status=status.HTTP_400_BAD_REQUEST)
-        if not user.is_active:
-            return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        token_view = CookieTokenObtainPairView()
-        return token_view.post(request)
-    
-        view = Login()
-        response = view.post(request)
-        return Response(response.data, status=response.status_code)
 
 
 class FileUploadView(generics.ListCreateAPIView):
