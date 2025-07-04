@@ -1,20 +1,56 @@
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from videoflix_db.models import Video, WatchedVideo
+from videoflix_db.models import UserProfil, Video, WatchedVideo
 from .utils import generate_video_url
+from authemail.serializers import SignupSerializer as AuthemailSignupSerializer
 
 
-class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = 'email'
+User = get_user_model()
+
+class Loginserializer(TokenObtainPairSerializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if 'username' in self.fields:
+            self.fields.pop('username')
 
     def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError({'error': _('Incorrect email or password')})
+        
+        if not user.check_password(password):
+            raise serializers.ValidationError({'error': _('Incorrect email or password')})
+        
+        attrs['username'] = user.username
         try:
             data = super().validate(attrs)
+            return data
         except serializers.ValidationError:
             raise serializers.ValidationError({'error': _('Incorrect email or password')})
-        return data
+        
+
+class RegistrationSerializer(AuthemailSignupSerializer):
+    def create(self, validated_data):
+        email = validated_data.get('email', '')
+        username = email.split('@')[0]
+
+        max_length = UserProfil._meta.get_field('username').max_length
+        if len(username) > max_length:
+            username = username[:max_length]
+        validated_data['username'] = username
+        return super().create(validated_data)
+
 
 
 class FileUploadSerializer(serializers.ModelSerializer):

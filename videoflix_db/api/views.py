@@ -14,7 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from videoflix_db.models import Video, WatchedVideo, UserProfil
 from .serializers import (
     FileUploadSerializer, VideoSerializer, WatchedVideoSerializer,
-    VideoListSerializer, FileEditSerializer, MyTokenObtainPairSerializer
+    VideoListSerializer, FileEditSerializer, Loginserializer, RegistrationSerializer
     )
 from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
@@ -22,14 +22,14 @@ from wsgiref.util import FileWrapper
 import os
 from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
 from authemail.views import Signup as AuthemailSignup
-from authemail.serializers import SignupSerializer, PasswordResetSerializer
+from authemail.serializers import PasswordResetSerializer
 
 
 class RegistrationView(APIView):
     def post(self, request):
         if request.data.get('password') != request.data.get('repeated_password'):
                 return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = SignupSerializer(data=request.data)
+        serializer = RegistrationSerializer(data=request.data)
 
         if not serializer.is_valid():
             if 'email' in serializer.errors:
@@ -109,23 +109,20 @@ class ChangePasswordView(APIView):
 
 
 class LoginView(TokenObtainPairView):
-    serializer_class = MyTokenObtainPairSerializer
+    serializer_class = Loginserializer
     
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data['email']
-        try:
-            user = UserProfil.objects.get(email=email)
-        except UserProfil.DoesNotExist:
-            return Response({'error': _('Incorrect email or password')}, status=status.HTTP_400_BAD_REQUEST)
+        email = request.data['email'] 
+        user = UserProfil.objects.get(email=email)
         if not user.is_active:
             return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
         
         response = super().post(request, *args, **kwargs)
-        refresh = response.data.get('refresh')
-        access = response.data.get('access')
+        refresh = serializer.validated_data['refresh']
+        access = serializer.validated_data['access']
 
         response.set_cookie(
             key='access_token',
@@ -145,7 +142,7 @@ class LoginView(TokenObtainPairView):
             max_age=24 * 60 * 60
         )
 
-        response.data = {'success': _('Login successfully')}
+        response.data = {'success': _('Login successful')}
         return response
 
 
