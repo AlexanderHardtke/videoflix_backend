@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework import serializers
-from videoflix_db.models import Video, WatchedVideo, UserProfil
+from videoflix_db.models import Video, WatchedVideo
 from .utils import generate_video_url
 
 
