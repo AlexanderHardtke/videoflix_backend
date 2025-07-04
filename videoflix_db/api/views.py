@@ -11,9 +11,12 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from videoflix_db.models import Video, WatchedVideo, UserProfil
-from .serializers import FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
+from .serializers import (
+    FileUploadSerializer, VideoSerializer, WatchedVideoSerializer,
+    VideoListSerializer, FileEditSerializer
+    )
 from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
@@ -109,14 +112,15 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         refresh = response.data.get('refresh')
-        access = response.data.get('refresh')
+        access = response.data.get('access')
 
         response.set_cookie(
             key='access_token',
             value=access,
             httponly=True,
             secure=True,
-            samesite='Lax'
+            samesite='Lax',
+            max_age=24 * 60 * 60
         )
 
         response.set_cookie(
@@ -124,26 +128,64 @@ class CookieTokenObtainPairView(TokenObtainPairView):
             value=refresh,
             httponly=True,
             secure=True,
-            samesite='Lax'
+            samesite='Lax',
+            max_age=24 * 60 * 60
         )
 
         response.data = {'success': _('Login successfully')}
         return response
 
+
+class  CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get(key='refresh_token')
+
+        if not refresh_token or refresh_token is None:
+            return Response(
+                {'error': _('Refresh token not found!')},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        serializer = self.get_serializer(data={'refresh':refresh_token})
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            return Response(
+                {'error': _('Refresh token invalid!')},
+                status=status.HTTP_401_UNAUTHORIZED
+                )
+        
+        access = serializer.validated_data.get('access')
+
+        response = Response({'success': _('access Token refreshed')})
+        response.set_cookie(
+            key='access_token',
+            value=access,
+            httponly=True,
+            secure=True,
+            samesite='Lax'
+        )
+        return response
+
+
 class LoginView(ObtainAuthToken):
-    permission_classes = [IsAuthenticated]
     
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
-            return Response({'error': _('Incorrect username or password')}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Incorrect email or password')}, status=status.HTTP_400_BAD_REQUEST)
         email = serializer.validated_data['email']
         try:
             user = UserProfil.objects.get(email=email)
         except UserProfil.DoesNotExist:
-            return Response({'error': _('Incorrect username or password')}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': _('Incorrect email or password')}, status=status.HTTP_400_BAD_REQUEST)
         if not user.is_active:
             return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        token_view = CookieTokenObtainPairView()
+        return token_view.post(request)
+    
         view = Login()
         response = view.post(request)
         return Response(response.data, status=response.status_code)
