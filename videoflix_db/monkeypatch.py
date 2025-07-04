@@ -1,6 +1,8 @@
-from authemail.models import SignupCode
+from authemail.models import AbstractBaseCode
 from django.conf import settings
 from authemail.models import send_multi_format_email
+
+original_send_email = AbstractBaseCode.send_email
 
 def custom_send_email(self, prefix):
     ctxt = {
@@ -12,4 +14,4 @@ def custom_send_email(self, prefix):
     }
     send_multi_format_email(prefix, ctxt, target_email=self.user.email)
 
-SignupCode.send_email = custom_send_email
+AbstractBaseCode.send_email = custom_send_email
