@@ -6,4 +6,5 @@ class VideoflixDbConfig(AppConfig):
     name = 'videoflix_db'
 
     def ready(self):
+        import videoflix_db.signals
         import videoflix_db.monkeypatch
