@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework import serializers
-from videoflix_db.models import Video, WatchedVideo
+from videoflix_db.models import Video, WatchedVideo, UserProfil
 from .utils import generate_video_url
 
 
@@ -27,10 +27,11 @@ class FileEditSerializer(serializers.ModelSerializer):
 
 class VideoSerializer(serializers.ModelSerializer):
     video_urls = serializers.SerializerMethodField()
+    sound_volume = serializers.SerializerMethodField()
 
     class Meta:
         model = Video
-        fields = ['id', 'name', 'video_urls']
+        fields = ['id', 'name', 'video_urls', 'sound_volume']
 
     def get_video_urls(self, obj):
         request = self.context.get('request')
@@ -40,6 +41,9 @@ class VideoSerializer(serializers.ModelSerializer):
             '360p': generate_video_url(obj, '360p', request) if obj.file360p else None,
             '240p': generate_video_url(obj, '240p', request) if obj.file240p else None,
         }
+    
+    def get_sound_volume(self, obj):
+        return self.context['request'].user.sound_volume
 
 
 class VideoListSerializer(serializers.ModelSerializer):

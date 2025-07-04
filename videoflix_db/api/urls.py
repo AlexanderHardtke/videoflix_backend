@@ -3,7 +3,7 @@ from .views import (
     RegistrationView, FileUploadView, LoginView, 
     VideoView, WatchedVideoView, ConfirmEmailView, 
     ResetPasswordView, ChangePasswordView, FileEditView,
-    VideoStreamView, ChangePassVerifyView)
+    VideoStreamView, ChangePassVerifyView, UserVolumeUpdateView)
 from rest_framework import routers
 
 router = routers.SimpleRouter()
@@ -20,6 +20,7 @@ urlpatterns = [
     path('reset/', ResetPasswordView.as_view(), name='reset-detail'),
     path('verify/', ChangePassVerifyView.as_view(), name='verify-detail'),
     path('change/', ChangePasswordView.as_view(), name='change-detail'),
+    path('api/volume/', UserVolumeUpdateView.as_view(), name='volume-detail'),
     path('videos/<int:pk>/stream/<str:quality>/', VideoStreamView.as_view(), name='video-stream'),
     path('watched/<int:pk>/', WatchedVideoView.as_view(), name='watched-detail'),
 ]

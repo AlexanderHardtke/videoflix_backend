@@ -224,6 +224,18 @@ class VideoStreamView(APIView):
         response['Content-Length'] = str(file_size)
         response['Accept-Ranges'] = 'bytes'
         return response
+    
+
+class UserVolumeUpdateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        sound_volume = request.data.get('sound_volume')
+        if sound_volume is not None:
+            request.user.sound_volume = sound_volume
+            request.user.save()
+            return Response(status=status.HTTP_200_OK)
+        return Response({'error': _('No volume provided')}, status=status.HTTP_400_BAD_REQUEST)
                 
 
 class WatchedVideoView(generics.UpdateAPIView):
