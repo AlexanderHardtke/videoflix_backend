@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
 from videoflix_db.models import Video, WatchedVideo, UserProfil
 from .serializers import FileUploadSerializer, VideoSerializer, WatchedVideoSerializer, VideoListSerializer, FileEditSerializer
 from .pagination import TypeBasedPagination
@@ -104,7 +105,34 @@ class ChangePasswordView(APIView):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CookieTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        refresh = response.data.get('refresh')
+        access = response.data.get('refresh')
+
+        response.set_cookie(
+            key='access_token',
+            value=access,
+            httponly=True,
+            secure=True,
+            samesite='Lax'
+        )
+
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh,
+            httponly=True,
+            secure=True,
+            samesite='Lax'
+        )
+
+        response.data = {'success': _('Login successfully')}
+        return response
+
 class LoginView(ObtainAuthToken):
+    permission_classes = [IsAuthenticated]
+    
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if not serializer.is_valid():
