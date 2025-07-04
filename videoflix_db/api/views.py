@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.conf import settings
-from django.http import StreamingHttpResponse
+from django.http import HttpRequest, StreamingHttpResponse
 from django.utils.translation import gettext as _
 from rest_framework import status, viewsets
 from rest_framework.views import APIView
@@ -17,7 +17,7 @@ from .pagination import TypeBasedPagination
 from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import os
-from authemail.views import SignupVerify, Login, PasswordReset, PasswordResetVerify
+from authemail.views import SignupVerify, Login, PasswordReset, PasswordResetVerify, PasswordResetVerified
 from authemail.views import Signup as AuthemailSignup
 from authemail.serializers import SignupSerializer, LoginSerializer, PasswordResetSerializer
 
@@ -44,13 +44,16 @@ class RegistrationView(APIView):
         else:
             return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
         
-
+        
 class ConfirmEmailView(APIView):
-    def post(self, request):
-        if not request.data.get('code'):
+    def get(self, request: HttpRequest):
+        code = request.GET.get('code')
+        if not code:
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
-        view = SignupVerify()
-        response = view.post(request)
+
+        signup_verify_view = SignupVerify.as_view()
+        response = signup_verify_view(request._request)
+        
         if response.status_code == status.HTTP_200_OK:
             return Response({'success': _('Email confirmed')}, status=status.HTTP_200_OK)
         else:
@@ -69,6 +72,20 @@ class ResetPasswordView(APIView):
         else:
             return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
 
+class ChangePassVerifyView(APIView):
+    def get(self, request: HttpRequest):
+        code = request.GET.get('code')
+        if not code:
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
+        
+        change_pass_view = PasswordResetVerify.as_view()
+        response = change_pass_view(request._request)
+
+        if response.status_code == status.HTTP_200_OK:
+            return Response({'success': _('User verified')}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ChangePasswordView(APIView):
     def post(self, request):
@@ -76,7 +93,7 @@ class ChangePasswordView(APIView):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
         if not request.data.get('password'):
             return Response({'error': _('Password is missing')}, status=status.HTTP_400_BAD_REQUEST)
-        view = PasswordResetVerify()
+        view = PasswordResetVerified()
         response = view.post(request)
         if response.status_code == status.HTTP_200_OK:
             return Response({'success': _('Password changed successfully')}, status=status.HTTP_200_OK)
