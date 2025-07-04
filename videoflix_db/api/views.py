@@ -111,7 +111,7 @@ class LoginView(ObtainAuthToken):
             user = UserProfil.objects.get(email=email)
         except UserProfil.DoesNotExist:
             return Response({'error': _('Incorrect username or password')}, status=status.HTTP_400_BAD_REQUEST)
-        if not user.email_confirmed:
+        if not user.is_active:
             return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
         view = Login()
         response = view.post(request)
