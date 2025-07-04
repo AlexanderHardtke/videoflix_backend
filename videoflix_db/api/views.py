@@ -24,11 +24,11 @@ from authemail.serializers import SignupSerializer, LoginSerializer, PasswordRes
 
 class RegistrationView(APIView):
     def post(self, request):
+        if request.data.get('password') != request.data.get('repeated_password'):
+                return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
         serializer = SignupSerializer(data=request.data)
 
         if not serializer.is_valid():
-            if 'password' in serializer.errors or 'repeated_password' in serializer.errors:
-                return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
             if 'email' in serializer.errors:
                 return Response({'error': _("Invalid email address")}, status=status.HTTP_400_BAD_REQUEST)
             return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
