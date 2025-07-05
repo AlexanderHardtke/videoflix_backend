@@ -106,7 +106,7 @@ class LoginView(TokenObtainPairView):
         return response
     
 
-class LogoutView():
+class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
         response = Response({'success': _('Logged out')}, status=status.HTTP_200_OK)
         response.delete_cookie('access_token', path='/', secure=True, samesite='Lax')
