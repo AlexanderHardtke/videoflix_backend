@@ -87,14 +87,13 @@ class LoginView(TokenObtainPairView):
 
         development = getattr(settings, 'DEBUG', True)
         secure = not development
-        samesite = 'None' if not development else 'Lax'
+        samesite = 'Lax' if development else 'None'
         response.set_cookie(
             key='access_token',
             value=str(access),
             httponly=True,
             secure=secure,
-            samesite=samesite,
-            max_age=24 * 60 * 60
+            samesite=samesite
         )
 
         response.set_cookie(
@@ -102,8 +101,7 @@ class LoginView(TokenObtainPairView):
             value=str(refresh),
             httponly=True,
             secure=secure,
-            samesite=samesite,
-            max_age=24 * 60 * 60
+            samesite=samesite
         )
 
         return response
@@ -113,10 +111,26 @@ class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
         development = getattr(settings, 'DEBUG', True)
         secure = not development
-        samesite = 'None' if not development else 'Lax'
+        samesite = 'Lax' if development else 'None'
         response = Response({'success': _('Logged out')}, status=status.HTTP_200_OK)
-        response.delete_cookie('access_token', path='/', secure=secure, samesite=samesite)
-        response.delete_cookie('refresh_token', path='/', secure=secure, samesite=samesite)
+
+        response.set_cookie(
+            key='access_token',
+            value=str(''),
+            httponly=True,
+            secure=secure,
+            samesite=samesite,
+            max_age=0
+        )
+
+        response.set_cookie(
+            key='refresh_token',
+            value=str(''),
+            httponly=True,
+            secure=secure,
+            samesite=samesite,
+            max_age=0
+        )
         
         return response
 
@@ -137,7 +151,7 @@ class CookieTokenRefreshView(TokenRefreshView):
         response = Response({'success': _('access Token refreshed')})
         development = getattr(settings, 'DEBUG', True)
         secure = not development
-        samesite = 'None' if not development else 'Lax'
+        samesite = 'Lax' if development else 'None'
         response.set_cookie(
             key='access_token',
             value=str(access_token),
