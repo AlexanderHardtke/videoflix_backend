@@ -1,12 +1,11 @@
+# from django.urls import reverse
+# from rest_framework.test import APIClient, APITestCase
+
 
 # class ActivateAccountTests(APITestCase):
 #     def setUp(self):
 #         self.client = APIClient()
 #         self.url = reverse('registration-detail')
-#         settings.EMAIL_CONFIRM_URL = 'https://mocked-url.com'
-#         patcher = patch('videoflix_db.api.views.requests.post')
-#         self.mock_post = patcher.start()
-#         self.addCleanup(patcher.stop)
 #         data = {
 #             'email': 'example@mail.de',
 #             'password': 'examplePassword',
@@ -64,57 +63,6 @@
 #         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-# class ProtectedViewTests(APITestCase):
-
-#     def setUp(self):
-#         self.user = create_user()
-#         self.client = APIClient()
-#         self.login_url = reverse('login-detail')
-#         self.protected_url = reverse('some-protected-view')
-
-#     def test_access_protected_view_with_valid_cookies(self):
-#         login_data = {
-#             'email': 'example@mail.de',
-#             'password': 'examplePassword'
-#         }
-#         self.client.post(self.login_url, login_data, format='json')
-#         response = self.client.get(self.protected_url)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-#     def test_access_protected_view_without_cookies(self):
-#         response = self.client.get(self.protected_url)
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-#     def test_access_protected_view_with_invalid_access_token(self):
-#         login_data = {
-#             'email': 'example@mail.de',
-#             'password': 'examplePassword'
-#         }
-#         self.client.post(self.login_url, login_data, format='json')
-
-#         self.client.cookies['access'] = 'invalid_access_token'
-#         response = self.client.get(self.protected_url)
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-#     def test_access_protected_view_with_expired_access_token_and_valid_refresh(self):
-#         login_data = {
-#             'email': 'example@mail.de',
-#             'password': 'examplePassword'
-#         }
-#         response = self.client.post(self.login_url, login_data, format='json')
-
-#         # Manually create an expired access token
-#         refresh = RefreshToken.for_user(self.user)
-#         refresh.access_token.set_exp(lifetime=timedelta(seconds=-1)) # Expire immediately
-#         self.client.cookies['access'] = str(refresh.access_token)
-
-#         response = self.client.get(self.protected_url)
-#         # If the backend automatically refreshes, it might be 200, otherwise 401
-#         # This depends on how JWT light is configured for automatic refresh.
-#         # Assuming it requires an explicit refresh call or returns 401 if access token is expired
-#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
 # class RefreshTokenTests(APITestCase):
 
 #     def setUp(self):
@@ -166,41 +114,3 @@
 
 #         response = self.client.post(self.refresh_url)
 #         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
-# class LogoutTests(APITestCase):
-
-#     def setUp(self):
-#         self.user = create_user()
-#         self.client = APIClient()
-#         self.login_url = reverse('login-detail')
-#         self.logout_url = reverse('logout-detail') # Assuming 'logout-detail' for logout endpoint
-
-#     def test_logout_success(self):
-#         login_data = {
-#             'email': 'example@mail.de',
-#             'password': 'examplePassword'
-#         }
-#         self.client.post(self.login_url, login_data, format='json')
-
-#         self.assertIn('access', self.client.cookies)
-#         self.assertIn('refresh', self.client.cookies)
-
-#         response = self.client.post(self.logout_url)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(response.data['success'], 'Logged out successfully')
-
-#         self.assertIn('access', response.cookies)
-#         self.assertIn('refresh', response.cookies)
-#         self.assertEqual(response.cookies['access']['max-age'], 0)
-#         self.assertEqual(response.cookies['refresh']['max-age'], 0)
-
-#     def test_logout_without_cookies(self):
-#         response = self.client.post(self.logout_url)
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(response.data['success'], 'Logged out successfully')
-#         # Cookies should still be absent or cleared even if not present initially
-#         self.assertIn('access', response.cookies)
-#         self.assertIn('refresh', response.cookies)
-#         self.assertEqual(response.cookies['access']['max-age'], 0)
-#         self.assertEqual(response.cookies['refresh']['max-age'], 0)
