@@ -131,9 +131,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHEMAIL_CONFIRMATION_EXPIRATION_DAYS = 1
-AUTHEMAIL_PASSWORD_RESET_EXPIRATION_DAYS = 1
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 

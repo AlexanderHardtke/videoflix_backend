@@ -34,10 +34,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise serializers.ValidationError(
                 {'error': _('Incorrect email or password')})
 
-        if not user.is_active:
-            raise serializers.ValidationError(
-                {'error': _('Confirm your email address')})
-
         attrs['username'] = user.username
         data = super().validate(attrs)
         return data

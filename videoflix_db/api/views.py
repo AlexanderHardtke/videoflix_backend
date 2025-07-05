@@ -77,10 +77,8 @@ class ResetPasswordView(APIView):
         
         view = PasswordReset()
         response = view.post(request)
-        if response.status_code == status.HTTP_201_CREATED:
-            return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
 
 
 class ChangePassVerifyView(APIView):

@@ -1,4 +1,4 @@
-from videoflix_db.models import Video, WatchedVideo, UserProfil
+from videoflix_db.models import Video, UserProfil
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
@@ -7,23 +7,47 @@ invalid_video_pk = 254
 
 def create_admin():
     return UserProfil.objects.create_superuser(
-        email='staff@mail.de', username='staff@mail.de',
-        password='staffpw', is_staff=True, email_confirmed=True)
+        email='staff@mail.de',
+        username='staff@mail.de',
+        password='staffpw',
+    )
+
 
 def create_user():
-    return UserProfil.objects.create_user(
-        email='example@mail.de', username='example@mail.de',
-        password='examplePassword', email_confirmed=True)
+    user = UserProfil.objects.create_user(
+        email='example@mail.de',
+        username='example@mail.de',
+        password='examplePassword',
+    )
+    user.is_active = True
+    user.is_verified = True
+    user.save()
+    return user
+
 
 def create_other_user():
-    return UserProfil.objects.create_user(
-        email='other@mail.de', username='other@mail.de',
-        password='otherPassword', email_confirmed=True)
+    user = UserProfil.objects.create_user(
+        email='other@mail.de',
+        username='other@mail.de',
+        password='otherPassword',
+    )
+    user.is_active = True
+    user.is_verified = True
+    user.save()
+    return user
+
 
 def create_incative_user():
-    return UserProfil.objects.create_user(
-        email='inactiveuser@mail.de', username='inactiveuser@mail.de',
-        password='examplePassword', email_confirmed=False)
+    user = UserProfil.objects.create_user(
+        email='inactiveuser@mail.de',
+        username='inactiveuser@mail.de',
+        password='examplePassword'
+    )
+    user.is_active = False
+    user.is_verified = False
+    user.save()
+    return user
+
 
 def create_video(user):
     return Video.objects.create(
