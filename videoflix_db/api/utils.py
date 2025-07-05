@@ -1,5 +1,3 @@
-from authemail.models import SignupCode
-from authemail.models import send_multi_format_email
 from django.utils import timezone
 from django.conf import settings
 from rest_framework.reverse import reverse

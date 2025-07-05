@@ -5,7 +5,7 @@ from .views import (
     VideoView, WatchedVideoView, ConfirmEmailView, 
     ResetPasswordView, ChangePasswordView, FileEditView,
     VideoStreamView, ChangePassVerifyView, UserVolumeUpdateView,
-    CookieTokenRefreshView
+    CookieTokenRefreshView, LogoutView
 )
 
 
@@ -23,6 +23,7 @@ urlpatterns = [
     
     path('login/', LoginView.as_view(), name='login-detail'),
     path('token/refresh/', CookieTokenRefreshView.as_view(), name='token_refresh'),
+    path('logout/', LogoutView.as_view(), name='logout-detail'),
     
     path('upload/', FileUploadView.as_view(), name='upload-list'),
     path('upload/<int:pk>/', FileEditView.as_view(), name='upload-detail'),

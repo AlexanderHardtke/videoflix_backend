@@ -3,14 +3,14 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from videoflix_db.models import UserProfil, Video, WatchedVideo
+from videoflix_db.models import Video, WatchedVideo
 from .utils import generate_video_url
-from authemail.serializers import SignupSerializer as AuthemailSignupSerializer
 
 
 User = get_user_model()
 
-class Loginserializer(TokenObtainPairSerializer):
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
@@ -27,30 +27,20 @@ class Loginserializer(TokenObtainPairSerializer):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError({'error': _('Incorrect email or password')})
-        
+            raise serializers.ValidationError(
+                {'error': _('Incorrect email or password')})
+
         if not user.check_password(password):
-            raise serializers.ValidationError({'error': _('Incorrect email or password')})
-        
+            raise serializers.ValidationError(
+                {'error': _('Incorrect email or password')})
+
+        if not user.is_active:
+            raise serializers.ValidationError(
+                {'error': _('Confirm your email address')})
+
         attrs['username'] = user.username
-        try:
-            data = super().validate(attrs)
-            return data
-        except serializers.ValidationError:
-            raise serializers.ValidationError({'error': _('Incorrect email or password')})
-        
-
-class RegistrationSerializer(AuthemailSignupSerializer):
-    def create(self, validated_data):
-        email = validated_data.get('email', '')
-        username = email.split('@')[0]
-
-        max_length = UserProfil._meta.get_field('username').max_length
-        if len(username) > max_length:
-            username = username[:max_length]
-        validated_data['username'] = username
-        return super().create(validated_data)
-
+        data = super().validate(attrs)
+        return data
 
 
 class FileUploadSerializer(serializers.ModelSerializer):
@@ -90,7 +80,7 @@ class VideoSerializer(serializers.ModelSerializer):
             '360p': generate_video_url(obj, '360p', request) if obj.file360p else None,
             '240p': generate_video_url(obj, '240p', request) if obj.file240p else None,
         }
-    
+
     def get_sound_volume(self, obj):
         return self.context['request'].user.sound_volume
 
@@ -110,10 +100,11 @@ class VideoListSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         request = self.context.get('request')
         path = reverse('video-detail', kwargs={'pk': obj.pk})
-        scheme = 'https' if request.is_secure() or request.META.get('HTTP_X_FORWARDED_PROTO') == 'https' else 'http'
+        scheme = 'https' if request.is_secure() or request.META.get(
+            'HTTP_X_FORWARDED_PROTO') == 'https' else 'http'
         host = request.get_host()
         return f"{scheme}://{host}{path}"
-    
+
     def get_watched_until(self, video):
         user = self.context['request'].user
         watched = WatchedVideo.objects.filter(user=user, video=video).first()

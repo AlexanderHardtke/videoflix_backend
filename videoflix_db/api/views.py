@@ -4,6 +4,7 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.conf import settings
 from django.http import HttpRequest, StreamingHttpResponse
 from django.utils.translation import gettext as _
+from django.contrib.auth import get_user_model
 from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -11,13 +12,14 @@ from rest_framework.response import Response
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from videoflix_db.models import Video, WatchedVideo, UserProfil
+from videoflix_db.auth import CookieJWTAuthentication
+from videoflix_db.models import Video, WatchedVideo
 from .serializers import (
     FileUploadSerializer, VideoSerializer, WatchedVideoSerializer,
-    VideoListSerializer, FileEditSerializer, Loginserializer, RegistrationSerializer
+    VideoListSerializer, FileEditSerializer, CustomTokenObtainPairSerializer
     )
 from .pagination import TypeBasedPagination
-from .utils  import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
+from .utils import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
 from wsgiref.util import FileWrapper
 import os
 from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
@@ -25,29 +27,33 @@ from authemail.views import Signup as AuthemailSignup
 from authemail.serializers import PasswordResetSerializer
 
 
+User = get_user_model()
+
+
 class RegistrationView(APIView):
     def post(self, request):
-        if request.data.get('password') != request.data.get('repeated_password'):
-                return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = RegistrationSerializer(data=request.data)
+        data = request.data.copy()
+        email = request.data.get('email')
+        password = request.data.get('password')
+        repeated_password = data.get('repeated_password')
 
-        if not serializer.is_valid():
-            if 'email' in serializer.errors:
-                return Response({'error': _("Invalid email address")}, status=status.HTTP_400_BAD_REQUEST)
-            return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not password:
+            return Response({'error': _("Email and password required")}, status=status.HTTP_400_BAD_REQUEST)
+        if password != repeated_password:
+            return Response({'error': _("Passwords don't match")}, status=status.HTTP_400_BAD_REQUEST)
         
-        email = serializer.validated_data['email']
-        if UserProfil.objects.filter(email=email).exists():
-            return Response({'success': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
-        
+        base_username = email.split('@')[0]
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}{counter}"
+            counter += 1
+        data['username'] = username
+
         view = AuthemailSignup()
-        response = view.post(request)
-        if response.status_code == status.HTTP_201_CREATED:
-            return Response({'success': _('Confirm your email address')}, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': response.data}, status=status.HTTP_400_BAD_REQUEST)
+        return view.post(request)
         
-        
+
 class ConfirmEmailView(APIView):
     def get(self, request: HttpRequest):
         code = request.GET.get('code')
@@ -62,6 +68,85 @@ class ConfirmEmailView(APIView):
         else:
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class LoginView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+ 
+        refresh = serializer.validated_data['refresh']
+        access = serializer.validated_data['access']
+
+        user = serializer.user
+        if not user.is_active:
+            return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
+
+        response = Response({'success': _('Login successful')})
+
+        response.set_cookie(
+            key='access_token',
+            value=str(access),
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+            max_age=24 * 60 * 60
+        )
+
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh),
+            httponly=True,
+            secure=True,
+            samesite='Lax',
+            max_age=24 * 60 * 60
+        )
+
+        return response
+    
+
+class LogoutView():
+    def post(self, request, *args, **kwargs):
+        response = Response({'success': _('Logged out')}, status=status.HTTP_200_OK)
+        response.delete_cookie('access_token', path='/', secure=True, samesite='Lax')
+        response.delete_cookie('refresh_token', path='/', secure=True, samesite='Lax')
+        
+        return response
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if not refresh_token or refresh_token is None:
+            return Response(
+                {'error': _('Refresh token not found!')},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        serializer = self.get_serializer(data={'refresh':refresh_token})
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            return Response(
+                {'error': _('Refresh token invalid!')},
+                status=status.HTTP_401_UNAUTHORIZED
+                )
+        
+        access_token = serializer.validated_data.get('access')
+
+        response = Response({'success': _('access Token refreshed')})
+        response.set_cookie(
+            key='access_token',
+            value=str(access_token),
+            httponly=True,
+            secure=True,
+            samesite='Lax'
+        )
+        return response
+    
 
 class ResetPasswordView(APIView):
     def post(self, request):
@@ -108,77 +193,6 @@ class ChangePasswordView(APIView):
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(TokenObtainPairView):
-    serializer_class = Loginserializer
-    
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        email = request.data['email'] 
-        user = UserProfil.objects.get(email=email)
-        if not user.is_active:
-            return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        response = super().post(request, *args, **kwargs)
-        refresh = serializer.validated_data['refresh']
-        access = serializer.validated_data['access']
-
-        response.set_cookie(
-            key='access_token',
-            value=access,
-            httponly=True,
-            secure=True,
-            samesite='Lax',
-            max_age=24 * 60 * 60
-        )
-
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh,
-            httponly=True,
-            secure=True,
-            samesite='Lax',
-            max_age=24 * 60 * 60
-        )
-
-        response.data = {'success': _('Login successful')}
-        return response
-
-
-class  CookieTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get(key='refresh_token')
-
-        if not refresh_token or refresh_token is None:
-            return Response(
-                {'error': _('Refresh token not found!')},
-                status=status.HTTP_400_BAD_REQUEST
-                )
-        
-        serializer = self.get_serializer(data={'refresh':refresh_token})
-
-        try:
-            serializer.is_valid(raise_exception=True)
-        except:
-            return Response(
-                {'error': _('Refresh token invalid!')},
-                status=status.HTTP_401_UNAUTHORIZED
-                )
-        
-        access = serializer.validated_data.get('access')
-
-        response = Response({'success': _('access Token refreshed')})
-        response.set_cookie(
-            key='access_token',
-            value=access,
-            httponly=True,
-            secure=True,
-            samesite='Lax'
-        )
-        return response
-
-
 class FileUploadView(generics.ListCreateAPIView):
     queryset = Video.objects.all()
     serializer_class = FileUploadSerializer
@@ -209,6 +223,7 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class VideoView(viewsets.ReadOnlyModelViewSet):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Video.objects.all().order_by('video_type', 'uploaded_at')
 
