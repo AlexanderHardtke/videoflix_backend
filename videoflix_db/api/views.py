@@ -272,6 +272,7 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
         meta_with_progress = meta.copy()
         meta_with_progress['watched_until'] = watched_video.watched_until
         meta_with_progress['watched_until_id'] = watched_video.id
+        meta_with_progress['sound_volume'] = request.user.sound_volume 
         return Response(meta_with_progress)
 
 
