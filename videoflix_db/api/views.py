@@ -1,3 +1,5 @@
+import os
+from wsgiref.util import FileWrapper
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
@@ -12,19 +14,17 @@ from rest_framework.response import Response
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
+from authemail.views import Signup as AuthemailSignup
+from authemail.serializers import PasswordResetSerializer
 from videoflix_db.auth import CookieJWTAuthentication
 from videoflix_db.models import Video, WatchedVideo
 from .serializers import (
     FileUploadSerializer, VideoSerializer, WatchedVideoSerializer,
     VideoListSerializer, FileEditSerializer, CustomTokenObtainPairSerializer
-    )
+)
 from .pagination import TypeBasedPagination
 from .utils import get_video_file, get_range, read_range, verify_video_token, get_ip_adress
-from wsgiref.util import FileWrapper
-import os
-from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
-from authemail.views import Signup as AuthemailSignup
-from authemail.serializers import PasswordResetSerializer
 
 
 User = get_user_model()
@@ -78,8 +78,8 @@ class LoginView(TokenObtainPairView):
  
         refresh = serializer.validated_data['refresh']
         access = serializer.validated_data['access']
-
         user = serializer.user
+        
         if not user.is_active:
             return Response({'error': _('Confirm your email address')}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -118,25 +118,16 @@ class LogoutView():
 class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         refresh_token = request.COOKIES.get('refresh_token')
-
         if not refresh_token or refresh_token is None:
-            return Response(
-                {'error': _('Refresh token not found!')},
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response({'error': _('Refresh token not found!')}, status=status.HTTP_400_BAD_REQUEST)
         
-        serializer = self.get_serializer(data={'refresh':refresh_token})
-
+        serializer = self.get_serializer(data={'refresh': refresh_token})
         try:
             serializer.is_valid(raise_exception=True)
         except:
-            return Response(
-                {'error': _('Refresh token invalid!')},
-                status=status.HTTP_401_UNAUTHORIZED
-                )
+            return Response({'error': _('Refresh token invalid!')}, status=status.HTTP_401_UNAUTHORIZED)
         
         access_token = serializer.validated_data.get('access')
-
         response = Response({'success': _('access Token refreshed')})
         response.set_cookie(
             key='access_token',
@@ -153,6 +144,7 @@ class ResetPasswordView(APIView):
         serializer = PasswordResetSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({'success': _('Check your email to reset password')}, status=status.HTTP_201_CREATED)
+        
         view = PasswordReset()
         response = view.post(request)
         if response.status_code == status.HTTP_201_CREATED:
@@ -169,7 +161,6 @@ class ChangePassVerifyView(APIView):
         
         change_pass_view = PasswordResetVerify.as_view()
         response = change_pass_view(request._request)
-
         if response.status_code == status.HTTP_200_OK:
             return Response({'success': _('User verified')}, status=status.HTTP_200_OK)
         else:
@@ -262,6 +253,8 @@ class VideoView(viewsets.ReadOnlyModelViewSet):
 
 
 class VideoStreamView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, quality):
         token = request.query_params.get('token')
@@ -300,6 +293,7 @@ class VideoStreamView(APIView):
     
 
 class UserVolumeUpdateView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def patch(self, request):
@@ -312,6 +306,7 @@ class UserVolumeUpdateView(APIView):
                 
 
 class WatchedVideoView(generics.UpdateAPIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     serializer_class = WatchedVideoSerializer
