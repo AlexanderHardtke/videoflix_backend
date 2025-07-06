@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from wsgiref.util import FileWrapper
 from django.shortcuts import get_object_or_404
 from django.core.cache import cache
@@ -7,6 +8,7 @@ from django.conf import settings
 from django.http import HttpRequest, StreamingHttpResponse
 from django.utils.translation import gettext as _
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.views import APIView
 from rest_framework import generics
@@ -17,6 +19,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
 from authemail.views import Signup as AuthemailSignup
 from authemail.serializers import PasswordResetSerializer
+from authemail.models import SignupCode
 from videoflix_db.auth import CookieJWTAuthentication
 from videoflix_db.models import Video, WatchedVideo
 from .serializers import (
@@ -58,6 +61,17 @@ class ConfirmEmailView(APIView):
     def get(self, request: HttpRequest):
         code = request.GET.get('code')
         if not code:
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            signup_code = SignupCode.objects.get(code=code)
+        except SignupCode.DoesNotExist:
+            return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
+        
+        expire_days = getattr(settings, 'AUTHEMAIL', {}).get('SIGNUP_CODE_EXPIRE', 1)
+        expiry_date = signup_code.created_at + timedelta(days=expire_days)
+        if timezone.now() > expiry_date:
+            signup_code.delete()
             return Response({'error': _('Token is not valid or expired')}, status=status.HTTP_400_BAD_REQUEST)
 
         signup_verify_view = SignupVerify.as_view()
