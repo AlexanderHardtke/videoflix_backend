@@ -1,13 +1,13 @@
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient, APITestCase
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from .test_data import create_user, create_incative_user
-from datetime import timedelta
+# from django.urls import reverse
+# from django.contrib.auth import get_user_model
+# from rest_framework.test import APIClient, APITestCase
+# from rest_framework import status
+# from rest_framework_simplejwt.tokens import RefreshToken
+# from .test_data import create_user, create_incative_user
+# from datetime import timedelta
 
 
-User = get_user_model()
+# User = get_user_model()
 
 
 # class CreateUserTests(APITestCase):

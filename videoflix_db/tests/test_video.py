@@ -100,9 +100,7 @@
 
 #     def test_wrong_update_upload_Video(self):
 #         video_instance = create_video(self.admin)
-#         data = {
-#             'video_type': 'error'
-#         }
+#         data = {'video_type': 'error'}
 #         url = reverse('upload-detail', kwargs={'pk': video_instance.pk})
 #         response = self.client.patch(url, data)
 #         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -194,8 +192,12 @@
 #         self.video = create_video(self.admin)
 #         self.user = create_user()
 #         self.client = APIClient()
-#         self.token = Token.objects.create(user=self.user)
-#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+#         login_url = reverse('login-detail')
+#         login_data = {
+#             'email': 'example@mail.de',
+#             'password': 'examplePassword'
+#         }
+#         self.client.post(login_url, login_data, format='json')
 #         self.url = reverse('video-list')
 
 #     def test_get_video_list(self):
@@ -207,12 +209,17 @@
 #         response = client.get(self.url)
 #         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-#     def test_forbidden_get_video_list(self):
-#         user = create_incative_user()
-#         self.token = Token.objects.create(user=user)
-#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-#         response = self.client.get(self.url)
-#         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+#     def test_unverified_get_video_list(self):
+#         client = APIClient()
+#         create_incative_user()
+#         login_url = reverse('login-detail')
+#         login_data = {
+#             'email': 'inactiveuser@mail.de',
+#             'password': 'examplePassword'
+#         }
+#         self.client.post(login_url, login_data, format='json')
+#         response = client.get(self.url)
+#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 #     def test_get_video_single(self):
 #         response = self.client.get(reverse('video-detail', kwargs={'pk': self.video.pk}))
@@ -225,12 +232,17 @@
 #         response = client.get(reverse('video-detail', kwargs={'pk': self.video.pk}))
 #         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-#     def test_forbidden_get_video_single(self):
-#         user = create_incative_user()
-#         self.token = Token.objects.create(user=user)
-#         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
-#         response = self.client.get(reverse('video-detail', kwargs={'pk': self.video.pk}))
-#         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+#     def test_unverified_get_video_single(self):
+#         client = APIClient()
+#         create_incative_user()
+#         login_url = reverse('login-detail')
+#         login_data = {
+#             'email': 'inactiveuser@mail.de',
+#             'password': 'examplePassword'
+#         }
+#         self.client.post(login_url, login_data, format='json')
+#         response = client.get(reverse('video-detail', kwargs={'pk': self.video.pk}))
+#         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 #     def test_not_found_get_video_single(self):
 #         response = self.client.get(reverse('video-detail', kwargs={'pk': invalid_video_pk}))

@@ -15,6 +15,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.exceptions import UnsupportedMediaType
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from authemail.views import SignupVerify, PasswordReset, PasswordResetVerify, PasswordResetVerified
 from authemail.views import Signup as AuthemailSignup
@@ -223,6 +224,7 @@ class FileUploadView(generics.ListCreateAPIView):
     queryset = Video.objects.all()
     serializer_class = FileUploadSerializer
     permission_classes = [IsAdminUser]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
 
     def perform_create(self, serializer):
         file = self.request.FILES.get('file1080p')
@@ -235,6 +237,7 @@ class FileEditView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Video.objects.all()
     serializer_class = FileEditSerializer
     permission_classes = [IsAdminUser]
+    authentication_classes = [TokenAuthentication, SessionAuthentication]
 
     def perform_update(self, serializer):
         file = self.request.FILES.get('file1080p')
