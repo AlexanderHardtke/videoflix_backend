@@ -3,7 +3,7 @@ from authemail.models import EmailUserManager, EmailAbstractUser
 
 
 class UserProfil(EmailAbstractUser):
-    username = models.CharField(max_length=75, unique=True, blank=True)
+    username = models.CharField(max_length=75, unique=False, blank=True)
     sound_volume = models.IntegerField(default=50)
     objects = EmailUserManager()
 
