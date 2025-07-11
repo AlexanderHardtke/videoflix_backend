@@ -19,7 +19,7 @@ class Video(models.Model):
     video_type = models.CharField(max_length=50, choices=VIDEO_TYPE_CHOICES, default='movies')
     big_image = models.FileField(max_length=99, blank=True,null=True, upload_to='movies/')
     image = models.FileField(max_length=99, blank=True,null=True, upload_to='movies/')
-    file1080p = models.FileField(max_length=99, blank=True, upload_to='movies/')
+    file1080p = models.FileField(max_length=99, upload_to='movies/')
     file720p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file360p = models.FileField(max_length=99, blank=True, upload_to='movies/')
     file240p = models.FileField(max_length=99, blank=True, upload_to='movies/')
